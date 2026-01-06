@@ -20,6 +20,7 @@ interface StoreContextType {
   deleteBlogPost: (id: string) => Promise<void>;
   banners: Banner[];
   addBanner: (banner: Omit<Banner, 'id'>) => Promise<void>;
+  updateBanner: (id: string, banner: Partial<Banner>) => Promise<void>;
 
   deleteBanner: (id: string) => Promise<void>;
 
@@ -740,6 +741,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
         await fetchData(user);
       },
+      updateBanner: async (id, b) => {
+        const { error } = await supabase.from('banners').update(b).eq('id', id);
+        if (error) throw new Error(error.message);
+        await fetchData(user);
+      },
       addBlogPost: async (p) => {
         const { error } = await supabase.from('blog_posts').insert([{
           title: p.title,
@@ -790,9 +796,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       signOut: async () => { await supabase.auth.signOut(); },
       refreshAllData: () => fetchData(user),
       searchQuery, setSearchQuery
-    }}>
+    }
+    } >
       {children}
-    </StoreContext.Provider>
+    </StoreContext.Provider >
   );
 };
 
