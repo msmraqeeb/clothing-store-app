@@ -829,7 +829,16 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const slug = catForm.name.toLowerCase().trim().replace(/[\s_-]+/g, '-');
+    let slug = catForm.name.toLowerCase().trim().replace(/[\s_-]+/g, '-');
+
+    // If parent category is selected, prefix with parent's slug to ensure uniqueness
+    if (catForm.parentId) {
+      const parentCat = categories.find(c => c.id === catForm.parentId);
+      if (parentCat && parentCat.slug) {
+        slug = `${parentCat.slug}-${slug}`;
+      }
+    }
+
     try {
       if (editingItem?.type === 'category') await updateCategory(editingItem.data.id, { ...catForm, slug });
       else await addCategory({ ...catForm, slug });
