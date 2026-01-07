@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Product, Category, Order, Variant, ShippingSettings, Brand, Coupon, CartItem, StoreInfo, Page, HomeSection, BlogPost } from '../types';
 import { PageBuilder } from '../components/PageBuilder';
+import { ImageLibrary } from '../components/ImageLibrary';
 import RichTextEditor from '../components/RichTextEditor';
 import { DISTRICT_AREA_DATA } from '../constants';
 
@@ -47,6 +48,9 @@ const Admin: React.FC = () => {
   const [orderProductSearch, setOrderProductSearch] = useState('');
   const [showProductPicker, setShowProductPicker] = useState(false);
 
+  // Image Library State
+  const [imageSelectorCallback, setImageSelectorCallback] = useState<((url: string) => void) | null>(null);
+
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
@@ -69,7 +73,7 @@ const Admin: React.FC = () => {
   const [shipForm, setShipForm] = useState<ShippingSettings>(shippingSettings);
   const [storeForm, setStoreForm] = useState<StoreInfo>({ name: '', logo_url: '', address: '', phone: '', email: '', socials: {} });
   const [pageForm, setPageForm] = useState<Omit<Page, 'id' | 'createdAt'>>({ title: '', slug: '', content: '', isPublished: true });
-  const [bannerForm, setBannerForm] = useState<{ type: 'slider' | 'right_top' | 'right_bottom'; title: string; subtitle: string; image_url: string; link: string; sort_order: number; is_active: boolean }>({
+  const [bannerForm, setBannerForm] = useState<{ type: 'slider' | 'right_top' | 'right_bottom' | 'home_banner'; title: string; subtitle: string; image_url: string; link: string; sort_order: number; is_active: boolean }>({
     type: 'slider', title: '', subtitle: '', image_url: '', link: '', sort_order: 0, is_active: true
   });
   const [sectionForm, setSectionForm] = useState<Omit<HomeSection, 'id'>>({
@@ -1121,6 +1125,12 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
 
   return (
     <div className="bg-[#fcfdfd] min-h-screen flex font-sans text-[#1a3a34]">
+      {imageSelectorCallback && (
+        <ImageLibrary
+          onSelect={(url) => { imageSelectorCallback(url); setImageSelectorCallback(null); }}
+          onClose={() => setImageSelectorCallback(null)}
+        />
+      )}
       {/* Sidebar */}
       <aside className="w-72 bg-black text-white flex flex-col p-8 sticky top-0 h-screen shrink-0 shadow-2xl z-50">
         <div className="flex items-center gap-3 mb-10 px-2">
@@ -1220,6 +1230,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                             <Upload size={16} /> Upload
                             <input type="file" onChange={handleSectionBannerImageUpload} className="hidden" accept="image/*" />
                           </label>
+                          <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setSectionForm(prev => ({ ...prev, banner: { ...prev.banner!, imageUrl: url } })))} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition-colors h-[46px]">
+                            <ImageIcon size={16} /> Select Image
+                          </button>
                           <input placeholder="Or enter Image URL" value={sectionForm.banner?.imageUrl || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...sectionForm.banner!, imageUrl: e.target.value } })} className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold outline-none" />
                         </div>
                       </div>
@@ -1279,8 +1292,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Type</label>
                         <select value={bannerForm.type} onChange={e => setBannerForm({ ...bannerForm, type: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-black transition-all">
                           <option value="slider">Main Slider</option>
-                          <option value="right_top">Right Top Banner</option>
-                          <option value="right_bottom">Right Bottom Banner</option>
+                          <option value="home_banner">Home Banner (Grid)</option>
                         </select>
                       </div>
                       <div className="space-y-3">
@@ -1296,6 +1308,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           <ImageIcon size={16} /> Upload Image
                           <input type="file" accept="image/*" onChange={handleBannerImageUpload} className="hidden" />
                         </label>
+                        <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setBannerForm(prev => ({ ...prev, image_url: url })))} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 hover:text-emerald-700 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest border border-emerald-100 transition-all flex items-center gap-2">
+                          <ImageIcon size={16} /> Select Image
+                        </button>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
@@ -1348,15 +1363,15 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
               <div>
                 <h3 className="text-lg font-black text-gray-700 mb-4 flex items-center gap-2">
                   <span className="w-2 h-8 bg-gray-500 rounded-full"></span>
-                  Right Side Banners
+                  Home Banners
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {banners.filter(b => b.type.startsWith('right_')).map(banner => (
+                  {banners.filter(b => b.type === 'home_banner').map(banner => (
                     <div key={banner.id} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm relative group overflow-hidden">
                       <div className="aspect-video bg-gray-100 rounded-2xl mb-4 overflow-hidden relative">
                         <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         <div className="absolute top-2 right-2 bg-gray-800 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase backdrop-blur-md">
-                          {banner.type === 'right_top' ? 'Top Right' : 'Bottom Right'}
+                          Home Banner
                         </div>
                       </div>
                       <h3 className="font-bold text-gray-800 text-lg mb-1">{banner.title || 'Untitled Banner'}</h3>
@@ -1370,9 +1385,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                       </div>
                     </div>
                   ))}
-                  {banners.filter(b => b.type.startsWith('right_')).length === 0 && (
+                  {banners.filter(b => b.type === 'home_banner').length === 0 && (
                     <div className="col-span-full py-12 text-center text-gray-400 font-medium italic bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                      No right side banners added yet
+                      No home banners added yet
                     </div>
                   )}
                 </div>
@@ -1652,6 +1667,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                       <Upload size={16} /> Upload
                       <input type="file" onChange={handleBlogImageUpload} className="hidden" accept="image/*" />
                     </label>
+                    <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setBlogForm(prev => ({ ...prev, imageUrl: url })))} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition-colors h-[46px]">
+                      <ImageIcon size={16} /> Select
+                    </button>
                     <input placeholder="Or enter Image URL" required={!blogForm.imageUrl} value={blogForm.imageUrl} onChange={e => setBlogForm({ ...blogForm, imageUrl: e.target.value })} className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3.5 font-bold outline-none text-sm" />
                   </div>
                 </div>
@@ -1761,6 +1779,11 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                       }} />
                       <PlusCircle size={32} className="text-gray-400 mb-2" />
                       <p className="text-gray-600 font-black text-lg">Click to select product images</p>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setProdForm(prev => ({ ...prev, images: [...prev.images, url] })))} className="text-emerald-600 hover:text-emerald-700 font-black uppercase text-xs tracking-widest flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-lg hover:bg-emerald-100 transition-colors">
+                        <ImageIcon size={16} /> Select from Library
+                      </button>
                     </div>
                     <div className="flex flex-wrap gap-4">{prodForm.images.map((img, idx) => (<div key={idx} className="relative w-24 h-24 border rounded-xl overflow-hidden p-2"><img src={img} className="w-full h-full object-contain" /><button onClick={() => setProdForm(p => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"><X size={10} /></button></div>))}</div>
                   </div>
@@ -1998,6 +2021,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                             <Upload size={14} /> Upload Logo
                             <input type="file" className="hidden" accept="image/*" onChange={handleBrandLogoUpload} />
                           </label>
+                          <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setBrandForm(prev => ({ ...prev, logo_url: url })))} className="bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 w-fit mt-2">
+                            <ImageIcon size={14} /> Select Logo
+                          </button>
                           <p className="text-[10px] text-gray-400 mt-2 font-medium">Recommended size: 200x200px. <br /> Transparent PNG works best.</p>
                         </div>
                       </div>
@@ -2255,6 +2281,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           <ImageIcon size={16} /> Upload Logo
                           <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                         </label>
+                        <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setStoreForm(prev => ({ ...prev, logo_url: url })))} className="bg-emerald-50 text-emerald-600 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 border border-emerald-100">
+                          <ImageIcon size={16} /> Select Logo
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -2286,6 +2315,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           <ImageIcon size={16} /> Upload Image
                           <input type="file" accept="image/*" onChange={handleSupportImageUpload} className="hidden" />
                         </label>
+                        <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setStoreForm(prev => ({ ...prev, floatingWidget: { ...prev.floatingWidget!, supportImage: url } })))} className="bg-emerald-50 text-emerald-600 px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 border border-emerald-100">
+                          <ImageIcon size={16} /> Select
+                        </button>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-8">

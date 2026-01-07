@@ -24,7 +24,7 @@ const BannerSlider: React.FC<BannerSliderProps> = ({ banners }) => {
     if (banners.length === 0) return null;
 
     return (
-        <div className="relative w-full overflow-hidden group mb-6">
+        <div className="relative w-full overflow-hidden group">
             <div
                 className="flex transition-transform duration-700 ease-out"
                 style={{ transform: `translateX(-${currentSlide * 100}%)` }}

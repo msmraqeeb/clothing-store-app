@@ -137,7 +137,7 @@ export interface Page {
 export type ViewMode = 'home' | 'products' | 'admin';
 export interface Banner {
   id: string;
-  type: 'slider' | 'right_top' | 'right_bottom';
+  type: 'slider' | 'right_top' | 'right_bottom' | 'home_banner';
   title?: string;
   subtitle?: string;
   image_url: string;
