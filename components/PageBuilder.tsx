@@ -24,6 +24,7 @@ export interface Block {
 interface PageBuilderProps {
     initialContent: string;
     onChange: (content: string) => void;
+    onImageSelectRequest?: (callback: (url: string) => void) => void;
 }
 
 // --- Icons List for Values Grid ---
@@ -54,7 +55,7 @@ const ICON_OPTIONS = [
     { label: 'License', value: 'FileText', icon: FileText },
 ];
 
-export const PageBuilder: React.FC<PageBuilderProps> = ({ initialContent, onChange }) => {
+export const PageBuilder: React.FC<PageBuilderProps> = ({ initialContent, onChange, onImageSelectRequest }) => {
     const [blocks, setBlocks] = useState<Block[]>([]);
 
     useEffect(() => {
@@ -202,13 +203,13 @@ export const PageBuilder: React.FC<PageBuilderProps> = ({ initialContent, onChan
                     {/* Block Editor Area */}
                     <div className="p-6">
                         {block.type === 'story_section' && (
-                            <StoryBlockEditor data={block.data} onChange={(d) => updateBlockData(block.id, d)} />
+                            <StoryBlockEditor data={block.data} onChange={(d) => updateBlockData(block.id, d)} onImageSelectRequest={onImageSelectRequest} />
                         )}
                         {block.type === 'values_grid' && (
                             <ValuesGridEditor data={block.data} onChange={(d) => updateBlockData(block.id, d)} />
                         )}
                         {block.type === 'hero_section' && (
-                            <HeroSectionEditor data={block.data} onChange={(d) => updateBlockData(block.id, d)} />
+                            <HeroSectionEditor data={block.data} onChange={(d) => updateBlockData(block.id, d)} onImageSelectRequest={onImageSelectRequest} />
                         )}
                         {block.type === 'cta_section' && (
                             <CtaSectionEditor data={block.data} onChange={(d) => updateBlockData(block.id, d)} />
@@ -270,7 +271,7 @@ export const PageBuilder: React.FC<PageBuilderProps> = ({ initialContent, onChan
 
 // --- Sub Editors ---
 
-const StoryBlockEditor = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
+const StoryBlockEditor = ({ data, onChange, onImageSelectRequest }: { data: any, onChange: (d: any) => void, onImageSelectRequest?: (callback: (url: string) => void) => void }) => {
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -287,6 +288,10 @@ const StoryBlockEditor = ({ data, onChange }: { data: any, onChange: (d: any) =>
         }
     };
 
+    const handleImageSelect = (url: string) => {
+        onChange({ ...data, image_url: url });
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -299,8 +304,8 @@ const StoryBlockEditor = ({ data, onChange }: { data: any, onChange: (d: any) =>
                     <input type="text" value={data.title} onChange={e => onChange({ ...data, title: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-black text-gray-900 text-lg focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Title 2 (Green)</label>
-                    <input type="text" value={data.title2} onChange={e => onChange({ ...data, title2: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-black text-emerald-500 text-lg focus:outline-none focus:border-emerald-500" placeholder="Second line..." />
+                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Title 2 (Grey)</label>
+                    <input type="text" value={data.title2} onChange={e => onChange({ ...data, title2: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-black text-gray-500 text-lg focus:outline-none focus:border-emerald-500" placeholder="Second line..." />
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Description</label>
@@ -317,6 +322,9 @@ const StoryBlockEditor = ({ data, onChange }: { data: any, onChange: (d: any) =>
                         </div>
                         <div className="flex gap-2">
                             <input type="text" value={data.image_url} onChange={e => onChange({ ...data, image_url: e.target.value })} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-500 truncate" disabled />
+                            {onImageSelectRequest && (
+                                <button type="button" onClick={() => onImageSelectRequest(handleImageSelect)} className="bg-emerald-50 text-emerald-600 px-4 rounded-xl text-xs font-bold hover:bg-emerald-100">Select</button>
+                            )}
                             <button type="button" onClick={() => onChange({ ...data, image_url: '' })} className="bg-red-50 text-red-500 px-4 rounded-xl text-xs font-bold hover:bg-red-100">Remove</button>
                         </div>
                     </div>
@@ -327,6 +335,9 @@ const StoryBlockEditor = ({ data, onChange }: { data: any, onChange: (d: any) =>
                             {/* Reusing Grid icon temporarily as placeholder or specific Upload icon */}
                         </div>
                         <span className="text-sm font-bold text-gray-500 group-hover:text-emerald-600">Click to Upload Image</span>
+                        {onImageSelectRequest && (
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageSelectRequest(handleImageSelect); }} className="mt-2 text-xs font-bold text-emerald-500 underline z-10">Or Select from Library</button>
+                        )}
                         <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                     </label>
                 )}
@@ -335,7 +346,7 @@ const StoryBlockEditor = ({ data, onChange }: { data: any, onChange: (d: any) =>
     );
 };
 
-const HeroSectionEditor = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
+const HeroSectionEditor = ({ data, onChange, onImageSelectRequest }: { data: any, onChange: (d: any) => void, onImageSelectRequest?: (callback: (url: string) => void) => void }) => {
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -350,6 +361,10 @@ const HeroSectionEditor = ({ data, onChange }: { data: any, onChange: (d: any) =
             console.error("Error uploading image:", error);
             alert(`Error uploading image: ${error.message}`);
         }
+    };
+
+    const handleImageSelect = (url: string) => {
+        onChange({ ...data, background_url: url });
     };
 
     return (
@@ -371,6 +386,9 @@ const HeroSectionEditor = ({ data, onChange }: { data: any, onChange: (d: any) =
                                     Change
                                     <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                                 </label>
+                                {onImageSelectRequest && (
+                                    <button type="button" onClick={() => onImageSelectRequest(handleImageSelect)} className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100">Select</button>
+                                )}
                                 <button type="button" onClick={() => onChange({ ...data, background_url: '' })} className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-600">Remove</button>
                             </div>
                         </div>
@@ -378,6 +396,9 @@ const HeroSectionEditor = ({ data, onChange }: { data: any, onChange: (d: any) =
                         <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 cursor-pointer transition-colors group">
                             <span className="text-sm font-bold text-gray-400 group-hover:text-emerald-600 flex items-center gap-2"><ImageIcon size={16} /> Upload Background</span>
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                            {onImageSelectRequest && (
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onImageSelectRequest(handleImageSelect); }} className="absolute bottom-4 text-xs font-bold text-emerald-500 underline z-10">Select from Library</button>
+                            )}
                         </label>
                     )}
                 </div>

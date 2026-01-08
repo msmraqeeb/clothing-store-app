@@ -88,8 +88,8 @@ const Footer: React.FC = () => {
               <div>
                 <h3 className="text-black font-bold text-lg mb-6">Social Links</h3>
                 <div className="flex gap-4 mb-6">
-                  {storeInfo.socials?.facebook && <a href={storeInfo.socials.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-emerald-500 transition-colors cursor-pointer"><Facebook size={18} /></a>}
-                  {storeInfo.socials?.instagram && <a href={storeInfo.socials.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-emerald-500 transition-colors cursor-pointer"><Instagram size={18} /></a>}
+                  {storeInfo.socials?.facebook && <a href={storeInfo.socials.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-black text-white border border-transparent flex items-center justify-center hover:bg-white hover:text-black hover:border-black transition-all cursor-pointer"><Facebook size={18} /></a>}
+                  {storeInfo.socials?.instagram && <a href={storeInfo.socials.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-black text-white border border-transparent flex items-center justify-center hover:bg-white hover:text-black hover:border-black transition-all cursor-pointer"><Instagram size={18} /></a>}
                   {(!storeInfo.socials?.facebook && !storeInfo.socials?.instagram) && <span className="text-gray-500 text-sm">No social links configured.</span>}
                 </div>
               </div>

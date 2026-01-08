@@ -1053,6 +1053,12 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
     } catch (error: any) { alert(`Error uploading image: ${error.message}`); }
   };
 
+
+
+
+
+
+
   const saveOrderEdits = async () => {
     if (!editingOrderData) return;
     try {
@@ -1639,7 +1645,11 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                   </div>
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Page Builder</label>
-                    <PageBuilder initialContent={pageForm.content} onChange={content => setPageForm({ ...pageForm, content })} />
+                    <PageBuilder
+                      initialContent={pageForm.content}
+                      onChange={content => setPageForm({ ...pageForm, content })}
+                      onImageSelectRequest={(callback) => setImageSelectorCallback(() => callback)}
+                    />
                   </div>
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-3 cursor-pointer">

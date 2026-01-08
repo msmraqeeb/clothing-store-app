@@ -26,7 +26,7 @@ export const StorySection: React.FC<{ data: any }> = ({ data }) => {
                 )}
                 <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
                     {data.title}
-                    {data.title2 && <span className="block text-[#10B981] mt-1">{data.title2}</span>}
+                    {data.title2 && <span className="block text-gray-500 mt-1">{data.title2}</span>}
                 </h2>
                 <div className="text-lg text-gray-600 leading-relaxed whitespace-pre-line">
                     {data.description}
@@ -58,7 +58,7 @@ export const ValuesGrid: React.FC<{ data: any }> = ({ data }) => {
                     const Icon = ICONS[item.icon] || Star;
                     return (
                         <div key={idx} className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-[#10B981] group-hover:text-white transition-all duration-300">
+                            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-black group-hover:text-white transition-all duration-300">
                                 <Icon size={28} />
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
@@ -87,11 +87,11 @@ export const HeroSection: React.FC<{ data: any }> = ({ data }) => {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 max-w-4xl mx-auto px-6 space-y-6">
+            <div className="relative z-10 max-w-6xl mx-auto px-6 space-y-6">
                 <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg">
                     {data.title}
                 </h1>
-                <p className="text-lg md:text-2xl text-gray-200 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+                <p className="text-lg md:text-2xl text-gray-200 font-normal max-w-5xl mx-auto leading-relaxed drop-shadow-md">
                     {data.description}
                 </p>
             </div>

@@ -88,7 +88,8 @@ const FloatingContact = () => {
             {/* Main Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden ring-4 ring-white ${isOpen ? 'bg-[#007bff] rotate-180' : 'bg-transparent hover:scale-105'}`}
+                style={{ backgroundColor: isOpen ? 'black' : 'transparent' }}
+                className={`w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden ring-4 ring-white ${isOpen ? 'rotate-180' : 'hover:scale-105'}`}
             >
                 {isOpen ? (
                     <X size={24} className="text-white" />
