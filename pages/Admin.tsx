@@ -194,6 +194,14 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleStoreLogoSelect = (url: string) => {
+    setStoreForm(prev => ({ ...prev, logo_url: url }));
+  };
+
+  const handleSupportImageSelect = (url: string) => {
+    setStoreForm(prev => ({ ...prev, floatingWidget: { ...(prev.floatingWidget || {}), supportImage: url } }));
+  };
+
   const SQL_SCHEMA = `-- SMart Grocery Super Admin Schema (V7)
 -- This script FIXES RLS "violate policy" errors for orders, wishlist, and addresses.
 -- SAFE to run multiple times. Data stays intact.
@@ -648,6 +656,10 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
     } catch (err: any) { alert(err.message); }
   };
 
+  const handleProductImageSelect = (url: string) => {
+    setProdForm(prev => ({ ...prev, images: [...prev.images, url] }));
+  };
+
   const startEditProduct = (p: Product) => {
     const hasSale = p.originalPrice !== undefined && p.originalPrice > p.price;
     const reconstructedAttrs: { name: string, options: string[] }[] = [];
@@ -752,10 +764,27 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
       }
 
       const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
-      setSectionForm({ ...sectionForm, banner: { ...sectionForm.banner!, imageUrl: data.publicUrl } });
+      setSectionForm(prev => ({ ...prev, banner: { ...(prev.banner || { title: '', description: '', imageUrl: '', buttonText: 'Shop Now', link: '/products' }), imageUrl: data.publicUrl } }));
     } catch (error: any) {
       alert('Error uploading image: ' + error.message);
     }
+  };
+
+  const handleSectionImageSelect = (url: string) => {
+    setSectionForm(prev => ({
+      ...prev,
+      banner: {
+        title: prev.banner?.title || '',
+        description: prev.banner?.description || '',
+        imageUrl: url,
+        buttonText: prev.banner?.buttonText || 'Shop Now',
+        link: prev.banner?.link || '/products'
+      }
+    }));
+  };
+
+  const handleBannerImageSelect = (url: string) => {
+    setBannerForm(prev => ({ ...prev, image_url: url }));
   };
 
   const startEditSection = (s: HomeSection) => {
@@ -798,6 +827,10 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
     } catch (error: any) {
       alert('Error uploading image: ' + error.message);
     }
+  };
+
+  const handleBlogImageSelect = (url: string) => {
+    setBlogForm(prev => ({ ...prev, imageUrl: url }));
   };
 
   const startEditBlog = (p: BlogPost) => {
@@ -865,6 +898,10 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
     } catch (error: any) {
       alert('Error uploading logo: ' + error.message);
     }
+  };
+
+  const handleBrandImageSelect = (url: string) => {
+    setBrandForm(prev => ({ ...prev, logo_url: url }));
   };
 
   const handleBrandSubmit = async (e: React.FormEvent) => {
@@ -1228,8 +1265,8 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                   <div className="border-t pt-6">
                     <h3 className="font-bold text-lg mb-4">Grid Banner Settings</h3>
                     <div className="grid grid-cols-2 gap-6">
-                      <input placeholder="Banner Title" value={sectionForm.banner?.title || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...sectionForm.banner!, title: e.target.value } })} className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold" />
-                      <input placeholder="Description" value={sectionForm.banner?.description || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...sectionForm.banner!, description: e.target.value } })} className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold" />
+                      <input placeholder="Banner Title" value={sectionForm.banner?.title || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...(sectionForm.banner || { title: '', description: '', imageUrl: '', buttonText: '', link: '' }), title: e.target.value } })} className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold" />
+                      <input placeholder="Description" value={sectionForm.banner?.description || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...(sectionForm.banner || { title: '', description: '', imageUrl: '', buttonText: '', link: '' }), description: e.target.value } })} className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold" />
 
                       <div className="col-span-2 space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Banner Image</label>
@@ -1239,14 +1276,14 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                             <Upload size={16} /> Upload
                             <input type="file" onChange={handleSectionBannerImageUpload} className="hidden" accept="image/*" />
                           </label>
-                          <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setSectionForm(prev => ({ ...prev, banner: { ...prev.banner!, imageUrl: url } })))} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition-colors h-[46px]">
+                          <button type="button" onClick={() => setImageSelectorCallback(() => handleSectionImageSelect)} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition-colors h-[46px]">
                             <ImageIcon size={16} /> Select Image
                           </button>
-                          <input placeholder="Or enter Image URL" value={sectionForm.banner?.imageUrl || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...sectionForm.banner!, imageUrl: e.target.value } })} className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold outline-none" />
+                          <input placeholder="Or enter Image URL" value={sectionForm.banner?.imageUrl || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...(sectionForm.banner || { title: '', description: '', imageUrl: '', buttonText: '', link: '' }), imageUrl: e.target.value } })} className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold outline-none" />
                         </div>
                       </div>
 
-                      <input placeholder="Link" value={sectionForm.banner?.link || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...sectionForm.banner!, link: e.target.value } })} className="col-span-2 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold" />
+                      <input placeholder="Link" value={sectionForm.banner?.link || ''} onChange={e => setSectionForm({ ...sectionForm, banner: { ...(sectionForm.banner || { title: '', description: '', imageUrl: '', buttonText: '', link: '' }), link: e.target.value } })} className="col-span-2 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-bold" />
                     </div>
                   </div>
                 )}
@@ -1317,7 +1354,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           <ImageIcon size={16} /> Upload Image
                           <input type="file" accept="image/*" onChange={handleBannerImageUpload} className="hidden" />
                         </label>
-                        <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setBannerForm(prev => ({ ...prev, image_url: url })))} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 hover:text-emerald-700 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest border border-emerald-100 transition-all flex items-center gap-2">
+                        <button type="button" onClick={() => setImageSelectorCallback(() => handleBannerImageSelect)} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 hover:text-emerald-700 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest border border-emerald-100 transition-all flex items-center gap-2">
                           <ImageIcon size={16} /> Select Image
                         </button>
                       </div>
@@ -1676,7 +1713,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                       <Upload size={16} /> Upload
                       <input type="file" onChange={handleBlogImageUpload} className="hidden" accept="image/*" />
                     </label>
-                    <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setBlogForm(prev => ({ ...prev, imageUrl: url })))} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition-colors h-[46px]">
+                    <button type="button" onClick={() => setImageSelectorCallback(() => handleBlogImageSelect)} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition-colors h-[46px]">
                       <ImageIcon size={16} /> Select
                     </button>
                     <input placeholder="Or enter Image URL" required={!blogForm.imageUrl} value={blogForm.imageUrl} onChange={e => setBlogForm({ ...blogForm, imageUrl: e.target.value })} className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3.5 font-bold outline-none text-sm" />
@@ -1790,7 +1827,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                       <p className="text-gray-600 font-black text-lg">Click to select product images</p>
                     </div>
                     <div className="flex justify-end pt-2">
-                      <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setProdForm(prev => ({ ...prev, images: [...prev.images, url] })))} className="text-emerald-600 hover:text-emerald-700 font-black uppercase text-xs tracking-widest flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-lg hover:bg-emerald-100 transition-colors">
+                      <button type="button" onClick={() => setImageSelectorCallback(() => handleProductImageSelect)} className="text-emerald-600 hover:text-emerald-700 font-black uppercase text-xs tracking-widest flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-lg hover:bg-emerald-100 transition-colors">
                         <ImageIcon size={16} /> Select from Library
                       </button>
                     </div>
@@ -2030,7 +2067,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                             <Upload size={14} /> Upload Logo
                             <input type="file" className="hidden" accept="image/*" onChange={handleBrandLogoUpload} />
                           </label>
-                          <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setBrandForm(prev => ({ ...prev, logo_url: url })))} className="bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 w-fit mt-2">
+                          <button type="button" onClick={() => setImageSelectorCallback(() => handleBrandImageSelect)} className="bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 w-fit mt-2">
                             <ImageIcon size={14} /> Select Logo
                           </button>
                           <p className="text-[10px] text-gray-400 mt-2 font-medium">Recommended size: 200x200px. <br /> Transparent PNG works best.</p>
@@ -2290,7 +2327,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           <ImageIcon size={16} /> Upload Logo
                           <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                         </label>
-                        <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setStoreForm(prev => ({ ...prev, logo_url: url })))} className="bg-emerald-50 text-emerald-600 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 border border-emerald-100">
+                        <button type="button" onClick={() => setImageSelectorCallback(() => handleStoreLogoSelect)} className="bg-emerald-50 text-emerald-600 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 border border-emerald-100">
                           <ImageIcon size={16} /> Select Logo
                         </button>
                       </div>
@@ -2324,7 +2361,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           <ImageIcon size={16} /> Upload Image
                           <input type="file" accept="image/*" onChange={handleSupportImageUpload} className="hidden" />
                         </label>
-                        <button type="button" onClick={() => setImageSelectorCallback(() => (url) => setStoreForm(prev => ({ ...prev, floatingWidget: { ...prev.floatingWidget!, supportImage: url } })))} className="bg-emerald-50 text-emerald-600 px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 border border-emerald-100">
+                        <button type="button" onClick={() => setImageSelectorCallback(() => handleSupportImageSelect)} className="bg-emerald-50 text-emerald-600 px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors flex items-center gap-2 border border-emerald-100">
                           <ImageIcon size={16} /> Select
                         </button>
                       </div>
