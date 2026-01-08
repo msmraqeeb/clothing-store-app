@@ -57,7 +57,7 @@ const Admin: React.FC = () => {
   // Form States
   const [prodForm, setProdForm] = useState({
     name: '', basePrice: '', salePrice: '', category: '', description: '', shortDescription: '', images: [] as string[],
-    unit: '', sku: '', brand: '', isFeatured: false, variants: [] as Variant[], tempAttributes: [] as { name: string, options: string[] }[]
+    unit: '', sku: '', brand: '', isFeatured: false, variants: [] as Variant[], tempAttributes: [] as { name: string, options: string[], forVariations: boolean }[]
   });
 
   const [catForm, setCatForm] = useState({ name: '', parentId: '' as string | null, image: '' });
@@ -176,7 +176,7 @@ const Admin: React.FC = () => {
   }, [orders, coupons, users, reportStartDate, reportEndDate]);
 
   const [showAttrForm, setShowAttrForm] = useState(false);
-  const [draftAttr, setDraftAttr] = useState({ name: '', options: [] as string[], currentOption: '' });
+  const [draftAttr, setDraftAttr] = useState({ name: '', options: [] as string[], currentOption: '', forVariations: true });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -570,10 +570,10 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
     }
     setProdForm(prev => ({
       ...prev,
-      tempAttributes: [...prev.tempAttributes, { name: draftAttr.name, options: draftAttr.options }]
+      tempAttributes: [...prev.tempAttributes, { name: draftAttr.name, options: draftAttr.options, forVariations: draftAttr.forVariations }]
     }));
     setShowAttrForm(false);
-    setDraftAttr({ name: '', options: [], currentOption: '' });
+    setDraftAttr({ name: '', options: [], currentOption: '', forVariations: true });
   };
 
   const handleGlobalAttrSelect = (attrId: string) => {
@@ -582,13 +582,15 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
       setDraftAttr({
         name: selected.name,
         options: selected.values.map(v => v.value),
-        currentOption: ''
+
+        currentOption: '',
+        forVariations: true
       });
     }
   };
 
   const generateVariants = () => {
-    const selectedAttrs = prodForm.tempAttributes.filter(a => a.options.length > 0);
+    const selectedAttrs = prodForm.tempAttributes.filter(a => a.options.length > 0 && a.forVariations);
     if (selectedAttrs.length === 0) {
       alert("Add some attributes first!");
       return;
@@ -662,7 +664,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
 
   const startEditProduct = (p: Product) => {
     const hasSale = p.originalPrice !== undefined && p.originalPrice > p.price;
-    const reconstructedAttrs: { name: string, options: string[] }[] = [];
+    const reconstructedAttrs: { name: string, options: string[], forVariations: boolean }[] = [];
     if (p.variants && p.variants.length > 0) {
       const attrMap: Record<string, Set<string>> = {};
       p.variants.forEach(v => {
@@ -672,7 +674,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
         });
       });
       Object.entries(attrMap).forEach(([name, vals]) => {
-        reconstructedAttrs.push({ name, options: Array.from(vals) });
+        reconstructedAttrs.push({ name, options: Array.from(vals), forVariations: true });
       });
     }
 
@@ -1864,8 +1866,14 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                     {showAttrForm ? (
                       <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm space-y-6 relative animate-in zoom-in-95 duration-200">
                         <button onClick={() => setShowAttrForm(false)} className="absolute top-4 right-4 text-red-500 hover:text-red-700 transition-colors"><X size={20} /></button>
-                        <div className="space-y-2">
-                          <label className="text-[13px] font-medium text-gray-600">Use Global Attribute (Optional)</label>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[13px] font-medium text-gray-600">Use Global Attribute (Optional)</label>
+                            <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                              <input type="checkbox" checked={draftAttr.forVariations} onChange={e => setDraftAttr({ ...draftAttr, forVariations: e.target.checked })} className="w-4 h-4 accent-black rounded" />
+                              <span className="text-xs font-bold text-gray-700">Use for variations</span>
+                            </label>
+                          </div>
                           <div className="relative">
                             <select onChange={(e) => handleGlobalAttrSelect(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500 appearance-none bg-white text-gray-400">
                               <option value="">Select a global attribute...</option>
@@ -1910,11 +1918,17 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                     <button type="button" onClick={generateVariants} className="w-full bg-slate-800 text-white px-6 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">Generate Variants Table</button>
                     {prodForm.variants.length > 0 && (
                       <div className="space-y-3">
+                        <div className="grid grid-cols-12 gap-4 px-4 pb-1 text-[10px] uppercase font-black text-gray-400 tracking-widest">
+                          <div className="col-span-3">Variant</div>
+                          <div className="col-span-3">MRP (৳)</div>
+                          <div className="col-span-3">Final Price (৳)</div>
+                          <div className="col-span-3">Stock</div>
+                        </div>
                         {prodForm.variants.map((v, vIdx) => (
                           <div key={v.id} className="grid grid-cols-12 gap-4 p-4 bg-gray-50 rounded-2xl items-center">
                             <div className="col-span-3 font-black text-xs text-black">{Object.values(v.attributeValues).join(' / ')}</div>
-                            <div className="col-span-3"><input type="number" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold" value={v.originalPrice || v.price} onChange={e => { const vs = [...prodForm.variants]; vs[vIdx].originalPrice = parseFloat(e.target.value); setProdForm({ ...prodForm, variants: vs }); }} placeholder="MRP" /></div>
-                            <div className="col-span-3"><input type="number" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-black" value={v.price} onChange={e => { const vs = [...prodForm.variants]; vs[vIdx].price = parseFloat(e.target.value); setProdForm({ ...prodForm, variants: vs }); }} placeholder="Selling Price" /></div>
+                            <div className="col-span-3"><input type="number" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold" value={v.originalPrice || v.price} onChange={e => { const vs = [...prodForm.variants]; const newMrp = parseFloat(e.target.value); const oldMrp = vs[vIdx].originalPrice || vs[vIdx].price; vs[vIdx].originalPrice = newMrp; if (vs[vIdx].price === oldMrp || vs[vIdx].price === 0) { vs[vIdx].price = newMrp; } setProdForm({ ...prodForm, variants: vs }); }} placeholder="MRP" /></div>
+                            <div className="col-span-3"><input type="number" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-black" value={v.price} onChange={e => { const vs = [...prodForm.variants]; vs[vIdx].price = parseFloat(e.target.value); setProdForm({ ...prodForm, variants: vs }); }} placeholder="Final Price" /></div>
                             <div className="col-span-3"><input className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold" value={v.stock} onChange={e => { const vs = [...prodForm.variants]; vs[vIdx].stock = parseInt(e.target.value); setProdForm({ ...prodForm, variants: vs }); }} placeholder="Stock" /></div>
                           </div>
                         ))}

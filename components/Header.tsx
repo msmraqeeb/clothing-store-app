@@ -40,23 +40,23 @@ const Header: React.FC = () => {
   return (
     <header className="w-full font-sans relative z-50 bg-white border-b border-gray-100 sticky top-0">
 
-      <div className="w-full px-6 md:px-12 h-16 md:h-24 flex items-center justify-between relative">
+      <div className="w-full px-6 md:px-12 h-14 md:h-20 flex items-center justify-between relative">
 
         {/* LEFT: Navigation */}
         <div className="flex items-center">
           {/* Mobile Hamburger */}
           <div className="flex md:hidden items-center mr-4">
             <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 text-gray-800">
-              <Menu size={28} strokeWidth={1.5} />
+              <Menu size={24} strokeWidth={1.5} />
             </button>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-10 text-base font-medium text-gray-800">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
             <Link to="/" className="hover:text-black transition-colors">Home</Link>
             <div className="relative group cursor-pointer flex items-center gap-1 hover:text-black transition-colors">
               <span>Festival</span>
-              <ChevronDown size={16} />
+              <ChevronDown size={14} />
               <div className="absolute top-full left-0 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="bg-white border border-gray-100 shadow-xl rounded-md py-2 w-48 flex flex-col">
                   <Link to="/products?category=Eid" className="px-4 py-2 hover:bg-gray-50 text-gray-600 hover:text-black text-sm">Eid Collection</Link>
@@ -76,7 +76,7 @@ const Header: React.FC = () => {
             <img
               src="https://ytidovmyivmhocawgbda.supabase.co/storage/v1/object/public/product-images/vnv-logo.png"
               alt="VnV"
-              className="h-10 md:h-16 w-auto object-contain"
+              className="h-8 md:h-12 w-auto object-contain"
             />
           </Link>
         </div>

@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#0f172a] text-gray-300 pt-16 pb-8 text-sm">
+    <footer className="bg-[#eeeeee] text-black pt-16 pb-8 text-sm">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 
@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
 
           {/* Links 1 */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-6">Company</h3>
+            <h3 className="text-black font-bold text-lg mb-6">Company</h3>
             <ul className="space-y-3">
               {(storeInfo.footer_links && storeInfo.footer_links.length > 0) ? (
                 storeInfo.footer_links.map((link, idx) => (
@@ -67,7 +67,7 @@ const Footer: React.FC = () => {
 
           {/* Links 2 */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-6">Category</h3>
+            <h3 className="text-black font-bold text-lg mb-6">Category</h3>
             <ul className="space-y-3">
               {categories
                 .filter(cat => !cat.parentId)
@@ -86,7 +86,7 @@ const Footer: React.FC = () => {
           <div className="col-span-2 md:col-span-1 lg:col-span-1">
             <div className="grid grid-cols-2 md:block gap-4">
               <div>
-                <h3 className="text-white font-bold text-lg mb-6">Social Links</h3>
+                <h3 className="text-black font-bold text-lg mb-6">Social Links</h3>
                 <div className="flex gap-4 mb-6">
                   {storeInfo.socials?.facebook && <a href={storeInfo.socials.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-emerald-500 transition-colors cursor-pointer"><Facebook size={18} /></a>}
                   {storeInfo.socials?.instagram && <a href={storeInfo.socials.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-emerald-500 transition-colors cursor-pointer"><Instagram size={18} /></a>}
@@ -117,7 +117,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+        <div className="border-t border-gray-300 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <div className="text-[11px] md:text-sm">
             © {currentYear} {storeInfo.name}. All rights reserved. <span className="text-gray-500 mx-1">|</span> Developed by: <a href="https://shakilmahmud.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:text-emerald-400 font-bold transition-colors">Shakil Mahmud</a>
           </div>

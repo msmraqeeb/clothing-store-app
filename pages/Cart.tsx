@@ -9,12 +9,12 @@ const Cart: React.FC = () => {
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState<string | null>(null);
 
-  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const subtotal = cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * item.quantity), 0);
   const shipping = subtotal > 1000 ? 0 : 60;
-  
+
   let discount = 0;
   if (appliedCoupon) {
-      discount = appliedCoupon.discountType === 'Fixed' ? appliedCoupon.discountValue : (subtotal * appliedCoupon.discountValue / 100);
+    discount = appliedCoupon.discountType === 'Fixed' ? appliedCoupon.discountValue : (subtotal * appliedCoupon.discountValue / 100);
   }
 
   const total = subtotal + shipping - discount;
@@ -48,7 +48,7 @@ const Cart: React.FC = () => {
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="container mx-auto px-4 md:px-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-8 tracking-tight">Shopping Cart</h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items Table */}
           <div className="lg:col-span-2">
@@ -59,7 +59,7 @@ const Cart: React.FC = () => {
                 <div className="col-span-2 text-center">Quantity</div>
                 <div className="col-span-2 text-center">Subtotal</div>
               </div>
-              
+
               <div className="divide-y divide-gray-100">
                 {cart.map(item => {
                   const cartItemId = item.selectedVariantId ? `${item.id}-${item.selectedVariantId}` : item.id;
@@ -83,20 +83,20 @@ const Cart: React.FC = () => {
 
                       {/* Price */}
                       <div className="col-span-2 text-center font-bold text-gray-400 text-sm">
-                        ৳{item.price.toFixed(2)}
+                        ৳{(Number(item.price) || 0).toFixed(2)}
                       </div>
 
                       {/* Quantity */}
                       <div className="col-span-2 flex justify-center">
                         <div className="flex items-center border border-gray-100 rounded-xl bg-gray-50/50 p-1">
-                          <button 
+                          <button
                             onClick={() => updateQuantity(cartItemId, -1)}
                             className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-white hover:text-emerald-500 rounded-lg transition-all"
                           >
                             <Minus size={14} />
                           </button>
                           <span className="w-8 text-center text-sm font-black text-gray-700">{item.quantity}</span>
-                          <button 
+                          <button
                             onClick={() => updateQuantity(cartItemId, 1)}
                             className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-white hover:text-emerald-500 rounded-lg transition-all"
                           >
@@ -107,7 +107,7 @@ const Cart: React.FC = () => {
 
                       {/* Subtotal */}
                       <div className="col-span-2 text-center font-black text-gray-800">
-                        ৳{(item.price * item.quantity).toFixed(2)}
+                        ৳{((Number(item.price) || 0) * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   );
@@ -126,60 +126,60 @@ const Cart: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 sticky top-24">
               <h2 className="text-xl font-black text-[#004d40] mb-8 uppercase tracking-widest text-center border-b border-gray-50 pb-4">Cart Total</h2>
-              
+
               <div className="space-y-4 mb-10">
                 <div className="flex justify-between text-gray-400 font-bold text-sm">
                   <span>Subtotal</span>
-                  <span className="text-gray-800 font-black">৳{subtotal.toFixed(2)}</span>
+                  <span className="text-gray-800 font-black">৳{(subtotal || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400 font-bold text-sm">
                   <span>Shipping</span>
                   <span className="text-gray-800 font-black">{shipping === 0 ? 'FREE' : `৳${shipping.toFixed(2)}`}</span>
                 </div>
-                
+
                 {appliedCoupon && (
                   <div className="flex justify-between items-center bg-[#f0f9f4] p-3 rounded-xl border border-emerald-100 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="flex flex-col">
-                       <span className="text-[10px] font-black text-[#00a651] uppercase tracking-widest">Coupon Applied</span>
-                       <span className="text-sm font-bold text-[#1a3a34]">{appliedCoupon.code}</span>
+                      <span className="text-[10px] font-black text-[#00a651] uppercase tracking-widest">Coupon Applied</span>
+                      <span className="text-sm font-bold text-[#1a3a34]">{appliedCoupon.code}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                       <span className="font-black text-[#00a651]">-৳{discount.toFixed(2)}</span>
-                       <button onClick={removeCoupon} className="text-gray-300 hover:text-red-500 transition-colors"><XCircle size={16}/></button>
+                      <span className="font-black text-[#00a651]">-৳{discount.toFixed(2)}</span>
+                      <button onClick={removeCoupon} className="text-gray-300 hover:text-red-500 transition-colors"><XCircle size={16} /></button>
                     </div>
                   </div>
                 )}
 
                 <div className="border-t-2 border-dashed border-gray-100 pt-6 flex justify-between items-center">
                   <span className="font-black text-lg text-[#004d40] uppercase tracking-tighter">Total</span>
-                  <span className="font-black text-3xl text-gray-900 tracking-tighter">৳{total.toFixed(2)}</span>
+                  <span className="font-black text-3xl text-gray-900 tracking-tighter">৳{(total || 0).toFixed(2)}</span>
                 </div>
               </div>
 
               {!appliedCoupon && (
                 <div className="mb-10">
-                   <label className="block text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest ml-1">Have a Coupon?</label>
-                   <div className="flex gap-2">
-                     <input 
-                       type="text" 
-                       placeholder="e.g. SAVE20" 
-                       value={couponInput}
-                       onChange={e => setCouponInput(e.target.value.toUpperCase())}
-                       onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
-                       className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 transition-all placeholder:text-gray-300" 
-                     />
-                     <button 
-                        onClick={handleApplyCoupon}
-                        className="bg-[#004d40] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95"
-                     >
-                        Apply
-                     </button>
-                   </div>
-                   {couponError && (
-                     <p className="text-red-500 text-[10px] font-black mt-2 ml-1 animate-pulse flex items-center gap-1">
-                        <XCircle size={10} /> {couponError}
-                     </p>
-                   )}
+                  <label className="block text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest ml-1">Have a Coupon?</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. SAVE20"
+                      value={couponInput}
+                      onChange={e => setCouponInput(e.target.value.toUpperCase())}
+                      onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
+                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 transition-all placeholder:text-gray-300"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      className="bg-[#004d40] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {couponError && (
+                    <p className="text-red-500 text-[10px] font-black mt-2 ml-1 animate-pulse flex items-center gap-1">
+                      <XCircle size={10} /> {couponError}
+                    </p>
+                  )}
                 </div>
               )}
 

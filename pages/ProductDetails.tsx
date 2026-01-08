@@ -55,9 +55,12 @@ const ProductDetails: React.FC = () => {
     if (!product?.variants) return [];
     const attrs: Record<string, Set<string>> = {};
     product.variants.forEach(v => {
+      if (!v || !v.attributeValues) return;
       Object.entries(v.attributeValues as Record<string, string>).forEach(([name, val]) => {
-        if (!attrs[name]) attrs[name] = new Set<string>();
-        attrs[name].add(val);
+        if (typeof val === 'string' || typeof val === 'number') {
+          if (!attrs[name]) attrs[name] = new Set<string>();
+          attrs[name].add(String(val));
+        }
       });
     });
     return Object.entries(attrs).map(([name, values]) => ({ name, values: Array.from(values) }));
@@ -66,7 +69,7 @@ const ProductDetails: React.FC = () => {
   const currentVariant = useMemo(() => {
     if (!product?.variants || Object.keys(selectedAttrValues).length === 0) return null;
     return product.variants.find(v =>
-      Object.entries(selectedAttrValues).every(([name, val]) => v.attributeValues[name] === val)
+      v && v.attributeValues && Object.entries(selectedAttrValues).every(([name, val]) => v.attributeValues[name] === val)
     ) || null;
   }, [selectedAttrValues, product]);
 
@@ -87,15 +90,41 @@ const ProductDetails: React.FC = () => {
   }
 
   const handleAddToCart = () => {
-    if (product.variants && product.variants.length > 0 && !currentVariant) {
-      setSelectionError("Please select a variant first.");
-      return;
+    if (product.variants && product.variants.length > 0) {
+      const missingAttributes = attributeList.filter(attr => !selectedAttrValues[attr.name]);
+      if (missingAttributes.length > 0) {
+        setSelectionError(`Please select ${missingAttributes[0].name}.`);
+        return;
+      }
+      if (!currentVariant) {
+        setSelectionError("Sorry, this combination is unavailable.");
+        return;
+      }
     }
     setSelectionError(null);
     addToCart(product, currentVariant || undefined, quantity);
   };
 
+  const isOptionDisabled = (name: string, val: string) => {
+    if (!product?.variants) return false;
+    // Check if selecting this option (combined with other currently selected attributes)
+    // results in a valid variant with stock > 0
+    const otherSelections = { ...selectedAttrValues };
+    delete otherSelections[name]; // Remove current attribute to test this specific value
+
+    const hasStock = product.variants.some(v => {
+      if (!v || !v.attributeValues || Number(v.stock) <= 0) return false;
+      // Must match the candidate value
+      if (String(v.attributeValues[name]) !== String(val)) return false;
+      // Must match all other selected attributes
+      return Object.entries(otherSelections).every(([k, vVal]) => String(v.attributeValues[k]) === String(vVal));
+    });
+
+    return !hasStock;
+  };
+
   const handleAttrSelect = (name: string, value: string) => {
+    if (isOptionDisabled(name, value)) return;
     setSelectedAttrValues(prev => ({ ...prev, [name]: value }));
     setSelectionError(null);
   };
@@ -131,9 +160,10 @@ const ProductDetails: React.FC = () => {
   };
 
   // Pricing display standardized
+  // Pricing display standardized
   // When a variant is selected, use its specific price and originalPrice
-  const displayPrice = currentVariant ? currentVariant.price : product.price;
-  const displayOriginalPrice = currentVariant ? currentVariant.originalPrice : product.originalPrice;
+  const displayPrice = Number(currentVariant?.price ?? product.price) || 0;
+  const displayOriginalPrice = Number(currentVariant?.originalPrice ?? product.originalPrice) || 0;
 
   const displayImages = product.images || [];
   const variantImage = currentVariant?.image;
@@ -218,7 +248,7 @@ const ProductDetails: React.FC = () => {
                 {product.name}
                 {currentVariant && (
                   <span className="text-[#00a651] font-bold">
-                    ({Object.values(currentVariant.attributeValues).join(', ')})
+                    ({currentVariant.attributeValues ? Object.values(currentVariant.attributeValues).join(', ') : ''})
                   </span>
                 )}
               </h1>
@@ -253,16 +283,20 @@ const ProductDetails: React.FC = () => {
                 <div className="flex flex-wrap gap-4">
                   {attr.values.map((val) => {
                     const isActive = selectedAttrValues[attr.name] === val;
+                    const isDisabled = isOptionDisabled(attr.name, String(val));
                     return (
                       <button
                         key={val}
-                        onClick={() => handleAttrSelect(attr.name, val)}
+                        onClick={() => handleAttrSelect(attr.name, String(val))}
+                        disabled={isDisabled}
                         className={`px-8 py-4 border-2 rounded-[15px] text-sm font-bold transition-all min-w-[110px] shadow-sm ${isActive
                           ? 'bg-[#00a651] border-black text-white shadow-xl'
-                          : 'bg-white border-gray-100 text-gray-500 hover:border-[#00a651]'
+                          : isDisabled
+                            ? 'bg-gray-100 text-gray-300 border-gray-100 cursor-not-allowed decoration-slice line-through opacity-60'
+                            : 'bg-white border-gray-100 text-gray-500 hover:border-[#00a651]'
                           }`}
                       >
-                        {val}
+                        {String(val)}
                       </button>
                     );
                   })}

@@ -15,7 +15,7 @@ const Login: React.FC = () => {
     password: '',
     fullName: ''
   });
-  
+
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +68,7 @@ const Login: React.FC = () => {
     <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100">
         <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-3xl bg-[#00a651] text-white shadow-xl shadow-emerald-100">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-3xl bg-black text-white shadow-xl shadow-gray-200">
             <User size={32} />
           </div>
           <h2 className="mt-6 text-3xl font-black text-gray-900 tracking-tight">
@@ -90,7 +90,7 @@ const Login: React.FC = () => {
           <div className="space-y-4">
             {!isLogin && (
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#00a651] transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-black transition-colors">
                   <User size={18} />
                 </div>
                 <input
@@ -99,14 +99,14 @@ const Login: React.FC = () => {
                   required={!isLogin}
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a651]/20 focus:border-[#00a651] transition-all bg-gray-50/50 font-medium"
+                  className="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all bg-gray-50/50 font-medium"
                   placeholder="Full Name"
                 />
               </div>
             )}
-            
+
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#00a651] transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-black transition-colors">
                 <Mail size={18} />
               </div>
               <input
@@ -116,13 +116,13 @@ const Login: React.FC = () => {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                className="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a651]/20 focus:border-[#00a651] transition-all bg-gray-50/50 font-medium"
+                className="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all bg-gray-50/50 font-medium"
                 placeholder="Email Address"
               />
             </div>
-            
+
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#00a651] transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-black transition-colors">
                 <Lock size={18} />
               </div>
               <input
@@ -132,13 +132,13 @@ const Login: React.FC = () => {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="block w-full pl-12 pr-12 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a651]/20 focus:border-[#00a651] transition-all bg-gray-50/50 font-medium"
+                className="block w-full pl-12 pr-12 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all bg-gray-50/50 font-medium"
                 placeholder="Password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-[#00a651] transition-colors focus:outline-none"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-black transition-colors focus:outline-none"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -151,7 +151,7 @@ const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-sm font-medium text-[#00a651] hover:text-[#008c44] transition-colors"
+                  className="text-sm font-medium text-gray-600 hover:text-black transition-colors"
                 >
                   Forgot Password?
                 </button>
@@ -161,7 +161,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-white bg-[#00a651] hover:bg-[#008c44] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00a651] transition-all shadow-xl shadow-emerald-100 uppercase tracking-widest disabled:opacity-70"
+              className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-white bg-black hover:bg-white hover:text-black hover:border-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all shadow-xl shadow-gray-200 uppercase tracking-widest disabled:opacity-70"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -178,7 +178,7 @@ const Login: React.FC = () => {
         <div className="text-center mt-6">
           <button
             onClick={() => { setIsLogin(!isLogin); setError(null); }}
-            className="text-sm font-bold text-gray-600 hover:text-[#00a651] transition-colors"
+            className="text-sm font-bold text-gray-600 hover:text-black transition-colors"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>

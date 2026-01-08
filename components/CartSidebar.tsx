@@ -8,7 +8,7 @@ const CartSidebar: React.FC = () => {
   const { cart, isCartOpen, closeCart, removeFromCart } = useStore();
   const navigate = useNavigate();
 
-  const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const total = cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * item.quantity), 0);
 
   if (!isCartOpen) return null;
 
@@ -25,11 +25,11 @@ const CartSidebar: React.FC = () => {
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-[60] transition-opacity"
         onClick={closeCart}
       />
-      
+
       {/* Sidebar */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[70] transform transition-transform duration-300 flex flex-col font-sans">
         {/* Header */}
@@ -67,10 +67,10 @@ const CartSidebar: React.FC = () => {
                       <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">{item.selectedVariantName}</span>
                     )}
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-emerald-600 font-bold">{item.quantity} x ৳{item.price.toFixed(2)}</span>
+                      <span className="text-emerald-600 font-bold">{item.quantity} x ৳{(Number(item.price) || 0).toFixed(2)}</span>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => removeFromCart(cartItemId)}
                     className="self-start text-gray-300 hover:text-red-500 transition-colors p-1"
                   >
@@ -87,16 +87,16 @@ const CartSidebar: React.FC = () => {
           <div className="p-5 bg-white border-t border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600 font-medium">Subtotal</span>
-              <span className="text-xl font-bold text-gray-800">৳{total.toFixed(2)}</span>
+              <span className="text-xl font-bold text-gray-800">৳{(total || 0).toFixed(2)}</span>
             </div>
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={handleViewCart}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center items-center gap-2"
               >
                 View Full Cart
               </button>
-              <button 
+              <button
                 onClick={handleCheckout}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-emerald-200"
               >

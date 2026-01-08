@@ -7,6 +7,80 @@
   <meta name="theme-color" content="#10b981" />
   <title>V&V: True to Style</title>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            emerald: {
+              50: '#f9fafb',
+              100: '#f3f4f6',
+              200: '#e5e7eb',
+              300: '#d1d5db',
+              400: '#9ca3af',
+              500: '#000000', // Black
+              600: '#1f2937', // Dark Gray
+              700: '#374151',
+              800: '#111827',
+              900: '#000000',
+            },
+            // Remap other colors to grayscale for Admin Charts
+            blue: { 500: '#374151', 50: '#f9fafb' }, 
+            purple: { 500: '#4b5563' }, 
+            pink: { 500: '#6b7280', 50: '#f9fafb', 100: '#f3f4f6', 600: '#000000' }, 
+            orange: { 500: '#9ca3af' }, 
+            yellow: { 400: '#d1d5db' }, 
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Global Inverse Hover Effects */
+    
+    /* Black/Emerald-500 Buttons -> White on Hover */
+    button[class*="bg-black"], 
+    button[class*="bg-emerald-500"],
+    button[class*="bg-slate-800"], /* Admin buttons */
+    a[class*="bg-black"],
+    a[class*="bg-emerald-500"] {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+    }
+
+    button[class*="bg-black"]:hover, 
+    button[class*="bg-emerald-500"]:hover,
+    button[class*="bg-slate-800"]:hover,
+    a[class*="bg-black"]:hover,
+    a[class*="bg-emerald-500"]:hover {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #000000 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* White Buttons -> Black on Hover */
+    button.bg-white:hover, 
+    a.bg-white:hover {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-color: #000000 !important;
+        transform: translateY(-2px);
+    }
+    
+    /* Input Focus States - Black instead of Blue/Emerald */
+    input:focus, textarea:focus, select:focus {
+        border-color: #000000 !important;
+        --tw-ring-color: rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Text Selection */
+    ::selection {
+        background-color: #000000;
+        color: #ffffff;
+    }
+  </style>
   <link rel="icon" type="image/png"
     href="https://ytidovmyivmhocawgbda.supabase.co/storage/v1/object/public/product-images/vnv-logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"

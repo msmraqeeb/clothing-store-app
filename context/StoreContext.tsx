@@ -394,7 +394,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (appliedCoupon) {
       // Verification logic for existing coupon
       const currentCoupon = coupons.find(c => c.id === appliedCoupon.id);
-      const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const subtotal = cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * item.quantity), 0);
       const today = new Date().toISOString().slice(0, 10);
 
       // 1. Coupon was deleted, deactivated, or criteria no longer met
@@ -417,7 +417,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
 
     // Auto-apply logic (only runs if no coupon is applied)
-    const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * item.quantity), 0);
     if (subtotal === 0) return;
 
     const today = new Date().toISOString().slice(0, 10);
@@ -447,7 +447,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         ...product,
         quantity,
         selectedVariantId: variant?.id,
-        selectedVariantName: variant ? Object.values(variant.attributeValues).join(' / ') : undefined,
+        selectedVariantName: variant?.attributeValues ? Object.values(variant.attributeValues).join(' / ') : undefined,
         selectedVariantImage: variant?.image,
         price: variant ? variant.price : product.price
       }];
@@ -456,7 +456,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const placeOrder = async (customerDetails: any): Promise<Order> => {
-    const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((acc, item) => acc + ((Number(item.price) || 0) * item.quantity), 0);
     const isDhaka = customerDetails.district?.toLowerCase() === 'dhaka';
     const shippingCostValue = isDhaka ? shippingSettings.insideDhaka : shippingSettings.outsideDhaka;
 
