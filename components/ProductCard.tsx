@@ -3,7 +3,7 @@ import React from 'react';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
@@ -11,6 +11,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart, wishlist, toggleWishlist, user } = useStore();
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [isHovered, setIsHovered] = React.useState(false);
   const [imageOpacity, setImageOpacity] = React.useState(100);
@@ -78,7 +79,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             onClick={(e) => {
               e.preventDefault();
-              addToCart(product);
+              if (product.variants && product.variants.length > 0) {
+                navigate(`/product/${product.slug}`);
+              } else {
+                addToCart(product);
+              }
             }}
             className="w-10 h-10 bg-white text-black shadow-md hover:bg-black hover:text-white transition-all flex items-center justify-center hover:scale-105"
             title="Add to Cart"

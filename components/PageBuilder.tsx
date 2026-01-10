@@ -176,9 +176,9 @@ export const PageBuilder: React.FC<PageBuilderProps> = ({ initialContent, onChan
     return (
         <div className="space-y-8">
             {blocks.map((block, index) => (
-                <div key={block.id} className="bg-white border-2 border-gray-100 rounded-3xl shadow-sm hover:border-emerald-100 transition-colors group">
+                <div key={block.id} className="bg-white border-2 border-gray-100 rounded-none shadow-sm hover:border-emerald-100 transition-colors group">
                     {/* Block Header */}
-                    <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-b border-gray-100 rounded-t-[1.3rem]">
+                    <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-b border-gray-100 rounded-none">
                         <div className="flex items-center gap-3">
                             <span className="p-2 bg-white rounded-lg border border-gray-200 text-gray-400">
                                 {block.type === 'story_section' && <Layout size={16} />}
@@ -236,31 +236,31 @@ export const PageBuilder: React.FC<PageBuilderProps> = ({ initialContent, onChan
             ))}
 
             <div className="grid grid-cols-3 gap-4">
-                <button type="button" onClick={() => addBlock('story_section')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group">
+                <button type="button" onClick={() => addBlock('story_section')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-emerald-500 transition-colors"><Layout size={24} /></div>
                     <span className="font-bold text-gray-600">Add Story Section</span>
                 </button>
-                <button type="button" onClick={() => addBlock('values_grid')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
+                <button type="button" onClick={() => addBlock('values_grid')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-blue-500 transition-colors"><Grid size={24} /></div>
                     <span className="font-bold text-gray-600">Add Values Grid</span>
                 </button>
-                <button type="button" onClick={() => addBlock('hero_section')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
+                <button type="button" onClick={() => addBlock('hero_section')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-orange-500 transition-colors"><ImageIcon size={24} /></div>
                     <span className="font-bold text-gray-600">Add Hero Section</span>
                 </button>
-                <button type="button" onClick={() => addBlock('cta_section')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-emerald-700 hover:bg-emerald-50 transition-all group">
+                <button type="button" onClick={() => addBlock('cta_section')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-emerald-700 hover:bg-emerald-50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-emerald-700 transition-colors"><Zap size={24} /></div>
                     <span className="font-bold text-gray-600">Add CTA Section</span>
                 </button>
-                <button type="button" onClick={() => addBlock('contact_section')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-teal-600 hover:bg-teal-50 transition-all group">
+                <button type="button" onClick={() => addBlock('contact_section')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-teal-600 hover:bg-teal-50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-teal-600 transition-colors"><Phone size={24} /></div>
                     <span className="font-bold text-gray-600">Add Contact Info</span>
                 </button>
-                <button type="button" onClick={() => addBlock('faq_contact_section')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
+                <button type="button" onClick={() => addBlock('faq_contact_section')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-indigo-500 transition-colors"><MessageSquare size={24} /></div>
                     <span className="font-bold text-gray-600">Add FAQ + Form</span>
                 </button>
-                <button type="button" onClick={() => addBlock('rich_text')} className="flex flex-col items-center gap-2 p-6 rounded-3xl border-2 border-dashed border-gray-200 hover:border-purple-400 hover:bg-purple-50/50 transition-all group">
+                <button type="button" onClick={() => addBlock('rich_text')} className="flex flex-col items-center gap-2 p-6 rounded-none border-2 border-dashed border-gray-200 hover:border-purple-400 hover:bg-purple-50/50 transition-all group">
                     <div className="p-4 bg-white rounded-full shadow-sm text-gray-400 group-hover:text-purple-500 transition-colors"><Type size={24} /></div>
                     <span className="font-bold text-gray-600">Add Text Block</span>
                 </button>

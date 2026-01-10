@@ -39,7 +39,7 @@ const DynamicPage: React.FC = () => {
         return (
             <div className="min-h-screen bg-gray-50 py-12">
                 <div className="container mx-auto px-4">
-                    <div className="bg-white rounded-[2rem] shadow-sm p-8 md:p-12 mb-8 min-h-[50vh]">
+                    <div className="bg-white rounded-none shadow-sm p-8 md:p-12 mb-8 min-h-[50vh]">
                         <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-8 tracking-tight">{page.title}</h1>
                         <div
                             className="prose prose-lg max-w-none prose-emerald"
@@ -74,7 +74,7 @@ const DynamicPage: React.FC = () => {
                     // Containerized Render (White Card Style)
                     return (
                         <div key={block.id} className="container mx-auto px-4 mb-8">
-                            <div className="bg-white rounded-[2.5rem] p-8 md:p-16 shadow-sm border border-gray-100/50">
+                            <div className="bg-white rounded-none p-8 md:p-16 shadow-sm border border-gray-100/50">
                                 {block.type === 'story_section' && <StorySection data={block.data} />}
                                 {block.type === 'values_grid' && <ValuesGrid data={block.data} />}
                                 {block.type === 'contact_section' && <ContactSection data={block.data} />}

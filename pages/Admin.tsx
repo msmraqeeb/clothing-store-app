@@ -66,6 +66,7 @@ const Admin: React.FC = () => {
   // Global Attributes Form State
   const [attrForm, setAttrForm] = useState({ name: '' });
   const [attrValuesInput, setAttrValuesInput] = useState('');
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
 
   const [couponForm, setCouponForm] = useState<Omit<Coupon, 'id' | 'createdAt'>>({
     code: '', discountType: 'Fixed', discountValue: 0, minimumSpend: 0, expiryDate: '', status: 'Active', autoApply: false
@@ -176,7 +177,7 @@ const Admin: React.FC = () => {
   }, [orders, coupons, users, reportStartDate, reportEndDate]);
 
   const [showAttrForm, setShowAttrForm] = useState(false);
-  const [draftAttr, setDraftAttr] = useState({ name: '', options: [] as string[], currentOption: '', forVariations: true });
+  const [draftAttr, setDraftAttr] = useState({ name: '', options: [] as string[], currentOption: '', forVariations: false, globalAttrId: '', tempSelected: [] as string[] });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -573,7 +574,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
       tempAttributes: [...prev.tempAttributes, { name: draftAttr.name, options: draftAttr.options, forVariations: draftAttr.forVariations }]
     }));
     setShowAttrForm(false);
-    setDraftAttr({ name: '', options: [], currentOption: '', forVariations: true });
+    setDraftAttr({ name: '', options: [], currentOption: '', forVariations: false, globalAttrId: '', tempSelected: [] });
   };
 
   const handleGlobalAttrSelect = (attrId: string) => {
@@ -581,10 +582,11 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
     if (selected) {
       setDraftAttr({
         name: selected.name,
-        options: selected.values.map(v => v.value),
-
+        options: [],
         currentOption: '',
-        forVariations: true
+        forVariations: false,
+        globalAttrId: attrId,
+        tempSelected: []
       });
     }
   };
@@ -648,6 +650,7 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
       brand: prodForm.brand,
       isFeatured: prodForm.isFeatured,
       variants: prodForm.variants,
+      attributes: prodForm.tempAttributes.map(a => ({ name: a.name, options: a.options })),
       slug: prodForm.name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '')
     };
 
@@ -665,7 +668,30 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
   const startEditProduct = (p: Product) => {
     const hasSale = p.originalPrice !== undefined && p.originalPrice > p.price;
     const reconstructedAttrs: { name: string, options: string[], forVariations: boolean }[] = [];
-    if (p.variants && p.variants.length > 0) {
+    if (p.attributes && p.attributes.length > 0) {
+      reconstructedAttrs.push(...p.attributes.map(a => ({ ...a, forVariations: true }))); // Assuming all saved attrs might be relevant, or we flag them. For now, checking usages in variants would be better but simple restore is key.
+      // Refined logic: check if used in variations?
+      // Actually the previous logic was reconstructing FROM variants. 
+      // If we have p.attributes, we use them.
+      // We should check 'forVariations'. But our stored attributes don't strictly save that flag yet in the simple object {name, options}.
+      // Let's deduce forVariations by checking if these attributes appear in variants.
+
+      const variantAttrs = new Set<string>();
+      if (p.variants) {
+        p.variants.forEach(v => Object.keys(v.attributeValues).forEach(k => variantAttrs.add(k)));
+      }
+
+      reconstructedAttrs.length = 0; // Clear
+      p.attributes.forEach(a => {
+        reconstructedAttrs.push({
+          name: a.name,
+          options: a.options,
+          forVariations: variantAttrs.has(a.name)
+        });
+      });
+
+    } else if (p.variants && p.variants.length > 0) {
+      // Legacy fallback
       const attrMap: Record<string, Set<string>> = {};
       p.variants.forEach(v => {
         Object.entries(v.attributeValues).forEach(([name, val]) => {
@@ -1822,7 +1848,6 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
               <div className="max-w-5xl mx-auto space-y-8 pb-20">
                 <div className="flex items-center justify-between">
                   <button onClick={closeForms} className="flex items-center gap-2 text-slate-400 hover:text-slate-800 font-bold text-sm uppercase tracking-widest transition-colors"><ChevronRight size={20} className="rotate-180" /> Back</button>
-                  <button onClick={handleProductSubmit} className="bg-black text-white px-10 py-3.5 rounded-xl font-black uppercase text-xs shadow-lg hover:bg-gray-800 flex items-center gap-2"><Save size={18} /> Save Product</button>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 space-y-8">
                   <div className="space-y-4">
@@ -1843,7 +1868,30 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                         <ImageIcon size={16} /> Select from Library
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-4">{prodForm.images.map((img, idx) => (<div key={idx} className="relative w-24 h-24 border rounded-xl overflow-hidden p-2"><img src={img} className="w-full h-full object-contain" /><button onClick={() => setProdForm(p => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"><X size={10} /></button></div>))}</div>
+                    <div className="flex flex-wrap gap-4">
+                      {prodForm.images.map((img, idx) => (
+                        <div
+                          key={idx}
+                          draggable
+                          onDragStart={() => setDraggedImageIndex(idx)}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (draggedImageIndex === null || draggedImageIndex === idx) return;
+                            const newImages = [...prodForm.images];
+                            const draggedItem = newImages[draggedImageIndex];
+                            newImages.splice(draggedImageIndex, 1);
+                            newImages.splice(idx, 0, draggedItem);
+                            setProdForm(prev => ({ ...prev, images: newImages }));
+                            setDraggedImageIndex(null);
+                          }}
+                          className={`relative w-24 h-24 border rounded-xl overflow-hidden p-2 cursor-grab active:cursor-grabbing transition-all ${draggedImageIndex === idx ? 'opacity-50 scale-95 border-dashed border-gray-400' : 'hover:border-black'}`}
+                        >
+                          <img src={img} className="w-full h-full object-contain pointer-events-none" />
+                          <button onClick={() => setProdForm(p => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors z-10"><X size={10} /></button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div className="space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Name</label><input required value={prodForm.name} onChange={e => setProdForm({ ...prodForm, name: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-6 py-4 text-base font-bold outline-none focus:ring-2 focus:ring-black" /></div>
                   <div className="grid grid-cols-2 gap-8">
@@ -1899,11 +1947,45 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                           </div>
                           <div className="flex-[2] space-y-2">
                             <label className="text-[13px] font-medium text-gray-600">Options</label>
-                            <div className="flex gap-2">
-                              <input placeholder="e.g. Red" value={draftAttr.currentOption} onChange={(e) => setDraftAttr(prev => ({ ...prev, currentOption: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddOption())} className="flex-1 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500" />
-                              <button type="button" onClick={handleAddOption} className="bg-black text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-95">Add</button>
+                            <div className="space-y-3">
+                              <div className="flex gap-2">
+                                <input placeholder="e.g. Red" value={draftAttr.currentOption} onChange={(e) => setDraftAttr(prev => ({ ...prev, currentOption: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddOption())} className="flex-1 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-1 focus:ring-emerald-500" />
+                                <button type="button" onClick={handleAddOption} className="bg-black text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-95">Add</button>
+                              </div>
+
+                              {/* Global Attribute Suggestions */}
+                              {draftAttr.globalAttrId && (
+                                <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                                  <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-2 block">Available Options (Click to Add)</label>
+                                  <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto custom-scrollbar">
+                                    {attributes.find(a => a.id === draftAttr.globalAttrId)?.values.map(v => {
+                                      const isSelected = draftAttr.options.includes(v.value);
+                                      return (
+                                        <button
+                                          key={v.id}
+                                          type="button"
+                                          onClick={() => {
+                                            setDraftAttr(prev => ({
+                                              ...prev,
+                                              options: isSelected
+                                                ? prev.options.filter(o => o !== v.value)
+                                                : [...prev.options, v.value]
+                                            }));
+                                          }}
+                                          className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${isSelected ? 'bg-black border-black text-white shadow-md' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'}`}
+                                        >
+                                          {v.value} {isSelected && <Check size={10} className="inline ml-1" />}
+                                        </button>
+                                      );
+                                    })}
+                                    {attributes.find(a => a.id === draftAttr.globalAttrId)?.values.length === 0 && (
+                                      <p className="text-xs text-gray-400 italic">No values defined for this attribute.</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <p className="text-[12px] text-gray-400 font-medium">Enter an option and click Add or press Enter.</p>
+                            <p className="text-[12px] text-gray-400 font-medium">Enter an option and click Add, or select from available global options.</p>
                           </div>
                         </div>
                         {draftAttr.options.length > 0 && (
@@ -1944,6 +2026,9 @@ CREATE POLICY "Public read blog" ON public.blog_posts FOR SELECT USING (true);`;
                         ))}
                       </div>
                     )}
+                  </div>
+                  <div className="flex justify-end pt-8 border-t border-gray-100">
+                    <button onClick={handleProductSubmit} className="bg-black text-white px-10 py-3.5 rounded-xl font-black uppercase text-xs shadow-lg hover:bg-gray-800 flex items-center gap-2 transition-all"><Save size={18} /> Save Product</button>
                   </div>
                 </div>
               </div>

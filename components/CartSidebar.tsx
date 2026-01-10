@@ -33,10 +33,10 @@ const CartSidebar: React.FC = () => {
       {/* Sidebar */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[70] transform transition-transform duration-300 flex flex-col font-sans">
         {/* Header */}
-        <div className="p-5 flex items-center justify-between bg-emerald-50/50 border-b border-gray-100">
+        <div className="p-5 flex items-center justify-between bg-gray-50/50 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-gray-800">Shopping Cart</h2>
-            <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{cart.length}</span>
+            <span className="bg-black text-white text-xs font-bold px-2 py-0.5 rounded-none">{cart.length}</span>
           </div>
           <button onClick={closeCart} className="text-gray-400 hover:text-red-500 transition-colors">
             <X size={24} />
@@ -58,16 +58,16 @@ const CartSidebar: React.FC = () => {
               const cartItemId = item.selectedVariantId ? `${item.id}-${item.selectedVariantId}` : item.id;
               return (
                 <div key={cartItemId} className="flex gap-4 group">
-                  <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center p-2 shrink-0">
+                  <div className="w-20 h-20 bg-gray-50 rounded-none flex items-center justify-center p-2 shrink-0">
                     <img src={item.selectedVariantImage || item.images?.[0] || ''} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <h4 className="font-semibold text-gray-800 text-sm mb-0.5 truncate">{item.name}</h4>
                     {item.selectedVariantName && (
-                      <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">{item.selectedVariantName}</span>
+                      <span className="text-[10px] font-bold text-black uppercase tracking-widest mb-1">{item.selectedVariantName}</span>
                     )}
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-emerald-600 font-bold">{item.quantity} x ৳{(Number(item.price) || 0).toFixed(2)}</span>
+                      <span className="text-black font-bold">{item.quantity} x ৳{(Number(item.price) || 0).toFixed(2)}</span>
                     </div>
                   </div>
                   <button
@@ -92,13 +92,13 @@ const CartSidebar: React.FC = () => {
             <div className="space-y-3">
               <button
                 onClick={handleViewCart}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center items-center gap-2"
+                className="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3.5 rounded-none transition-colors flex justify-center items-center gap-2"
               >
                 View Full Cart
               </button>
               <button
                 onClick={handleCheckout}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-emerald-200"
+                className="w-full bg-black hover:bg-gray-900 text-white font-bold py-3.5 rounded-none transition-colors flex justify-center items-center gap-2 shadow-lg shadow-gray-200"
               >
                 Proceed to Checkout
               </button>

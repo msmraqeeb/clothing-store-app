@@ -92,6 +92,25 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 const SUPER_ADMIN_EMAIL = 'msmraqeeb@gmail.com';
 
+const generateSlug = (name: string) => {
+  return name.toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+const ensureUniqueSlug = (items: { slug?: string }[], baseSlug: string): string => {
+  let counter = 1;
+  let newSlug = baseSlug;
+  // Check against existing items (case-insensitive check for robustness)
+  while (items.some(item => (item.slug || '').toLowerCase() === newSlug.toLowerCase())) {
+    counter++;
+    newSlug = `${baseSlug}-${counter}`;
+  }
+  return newSlug;
+};
+
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -183,7 +202,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     shortDescription: p.short_description, description: String(p.description || ''),
     sku: p.sku, slug: p.slug, brand: p.brand,
     isFeatured: Boolean(p.is_featured),
-    variants: Array.isArray(p.variants) ? p.variants : []
+    variants: Array.isArray(p.variants) ? p.variants : [],
+    attributes: Array.isArray(p.attributes) ? p.attributes : []
   });
 
   const mapProductToDB = (p: Partial<Product>) => {
@@ -202,6 +222,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (p.brand !== undefined) db.brand = p.brand;
     if (p.isFeatured !== undefined) db.is_featured = p.isFeatured;
     if (p.variants !== undefined) db.variants = p.variants;
+    if (p.attributes !== undefined) db.attributes = p.attributes;
     return db;
   };
 
@@ -555,7 +576,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setStoreInfo(info);
       },
       addProduct: async (p) => {
-        const { error } = await supabase.from('products').insert([mapProductToDB(p)]);
+        const baseSlug = p.slug || generateSlug(p.name || '');
+        const uniqueSlug = ensureUniqueSlug(products, baseSlug);
+        const productToSave = { ...p, slug: uniqueSlug };
+
+        const { error } = await supabase.from('products').insert([mapProductToDB(productToSave)]);
         if (error) throw new Error(error.message);
         await fetchData(user);
       },
@@ -570,7 +595,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         await fetchData(user);
       },
       addCategory: async (c) => {
-        const { error } = await supabase.from('categories').insert([{ name: c.name, slug: c.slug, parent_id: c.parentId || null, image_url: c.image }]);
+        const baseSlug = c.slug || generateSlug(c.name);
+        const uniqueSlug = ensureUniqueSlug(categories, baseSlug);
+        const { error } = await supabase.from('categories').insert([{ name: c.name, slug: uniqueSlug, parent_id: c.parentId || null, image_url: c.image }]);
         if (error) throw new Error(error.message);
         await fetchData(user);
       },
@@ -585,7 +612,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         await fetchData(user);
       },
       addBrand: async (b) => {
-        const { error } = await supabase.from('brands').insert([{ name: b.name, slug: b.slug, logo_url: b.logo_url }]);
+        const baseSlug = b.slug || generateSlug(b.name);
+        const uniqueSlug = ensureUniqueSlug(brands, baseSlug);
+        const { error } = await supabase.from('brands').insert([{ name: b.name, slug: uniqueSlug, logo_url: b.logo_url }]);
         if (error) throw new Error(error.message);
         await fetchData(user);
       },
@@ -703,9 +732,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setAddresses(prev => prev.filter(a => a.id !== id));
       },
       addPage: async (p) => {
+        const baseSlug = p.slug || generateSlug(p.title);
+        const uniqueSlug = ensureUniqueSlug(pages, baseSlug);
         const { error } = await supabase.from('pages').insert([{
           title: p.title,
-          slug: p.slug,
+          slug: uniqueSlug,
           content: p.content,
           is_published: p.isPublished
         }]);
@@ -747,13 +778,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         await fetchData(user);
       },
       addBlogPost: async (p) => {
+        const baseSlug = p.slug || generateSlug(p.title);
+        const uniqueSlug = ensureUniqueSlug(blogPosts, baseSlug);
         const { error } = await supabase.from('blog_posts').insert([{
           title: p.title,
           excerpt: p.excerpt,
           content: p.content,
           author: p.author,
           image_url: p.imageUrl,
-          slug: p.slug,
+          slug: uniqueSlug,
           tags: p.tags
         }]);
         if (error) throw new Error(error.message);

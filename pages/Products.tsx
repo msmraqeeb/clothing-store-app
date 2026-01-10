@@ -24,12 +24,16 @@ const buildCategoryTree = (categories: Category[], parentId: string | null = nul
 const CategorySidebarItem: React.FC<{
   category: CategoryNode;
   selectedCategory: string;
-  onSelect: (name: string) => void;
+  onSelect: (slug: string) => void;
   selectedCategoryFamily: string[];
 }> = ({ category, selectedCategory, onSelect, selectedCategoryFamily }) => {
+  // Use slug for unique identification if available, fallback to name
+  const categoryKey = category.slug || category.name;
+
   // Auto-expand if this category or any child is selected, or if it's a top-level parent of the selection
-  const isSelected = selectedCategory === category.name;
-  const isPathActive = selectedCategoryFamily.includes(category.name);
+  const isSelected = selectedCategory === categoryKey;
+  // Check if this category is in the active path (using slug/key)
+  const isPathActive = selectedCategoryFamily.includes(categoryKey);
 
   const [isExpanded, setIsExpanded] = useState(isPathActive);
 
@@ -48,20 +52,20 @@ const CategorySidebarItem: React.FC<{
   return (
     <div className="w-full">
       <div
-        className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${isSelected ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50'}`}
-        onClick={() => onSelect(category.name)}
+        className={`flex items-center justify-between px-3 py-2 rounded-none text-sm font-medium transition-colors cursor-pointer ${isSelected ? 'bg-black/5 text-black' : 'text-gray-600 hover:bg-gray-50'}`}
+        onClick={() => onSelect(categoryKey)}
         style={{ paddingLeft: `${(category.level * 12) + 12}px` }}
       >
         <div className="flex items-center gap-2">
           {/* Only show leaf indicator if it's a child */}
-          {category.level > 0 && !hasChildren && <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>}
+          {category.level > 0 && !hasChildren && <div className="w-1.5 h-1.5 rounded-none bg-gray-300"></div>}
           <span className={`${isSelected ? 'font-bold' : ''}`}>{category.name}</span>
         </div>
 
         {hasChildren && (
           <button
             onClick={handleToggle}
-            className={`p-1 rounded-md hover:bg-gray-200 transition-colors ${isSelected ? 'text-emerald-600' : 'text-gray-400'}`}
+            className={`p-1 rounded-none hover:bg-gray-200 transition-colors ${isSelected ? 'text-black' : 'text-gray-400'}`}
           >
             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
@@ -86,8 +90,9 @@ const CategorySidebarItem: React.FC<{
 };
 
 const Products: React.FC = () => {
-  const { products, categories, searchQuery, brands, reviews } = useStore();
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const { products, categories, searchQuery, brands, reviews, attributes } = useStore();
+  // selectedCategory now stores the SLUG (or name if slug missing), not just name
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedMinRating, setSelectedMinRating] = useState<number | null>(null);
 
@@ -95,31 +100,19 @@ const Products: React.FC = () => {
 
   // Helper to find all descendant category names for a given parent name
   const selectedCategoryFamily = useMemo(() => {
-    if (selectedCategory === 'All') return [];
+    if (selectedCategory === 'all') return [];
 
-    const getDescendantNames = (catName: string): string[] => {
-      const currentCat = categories.find(c => c.name === catName);
-      if (!currentCat) return [catName];
+    // Traverse upwards using ID/Slug to build the family path of IDs/Slugs
+    const family: string[] = [selectedCategory];
 
-      let names = [catName];
-      const directChildren = categories.filter(c => c.parentId === currentCat.id); // Loose equality handled by string/null checks in StoreContext but verifying logic consistency
-
-      directChildren.forEach(child => {
-        names = [...names, ...getDescendantNames(child.name)];
-      });
-
-      return names;
-    };
-
-    // Also find ancestors to keep them expanded
-    const family = getDescendantNames(selectedCategory);
+    // Find current category object by unique slug/name match
+    let curr = categories.find(c => (c.slug || c.name) === selectedCategory);
 
     // Add ancestors
-    let curr = categories.find(c => c.name === selectedCategory);
     while (curr && curr.parentId) {
       const parent = categories.find(c => c.id === curr!.parentId);
       if (parent) {
-        family.push(parent.name);
+        family.push(parent.slug || parent.name);
         curr = parent;
       } else {
         break;
@@ -164,43 +157,16 @@ const Products: React.FC = () => {
   }, [selectedCategory]);
 
   const availableAttributes = useMemo(() => {
-    // 1. Get products in current category context
-    const getDescendantsOnly = (catName: string): string[] => {
-      if (catName === 'All') return [];
-      const currentCat = categories.find(c => c.name === catName);
-      if (!currentCat) return [catName];
-      let names = [catName];
-      categories.filter(c => c.parentId === currentCat.id).forEach(child => {
-        names = [...names, ...getDescendantsOnly(child.name)];
-      });
-      return names;
-    };
-    const filterCategories = selectedCategory === 'All' ? [] : getDescendantsOnly(selectedCategory);
-
-    const categoryProducts = products.filter(p => {
-      const categoryMatch = selectedCategory === 'All' || filterCategories.includes(p.category);
-      return categoryMatch;
-    });
-
-    // 2. Extract attributes from variants
-    const attrs: Record<string, Set<string>> = {};
-    categoryProducts.forEach(p => {
-      if (p.variants) {
-        p.variants.forEach(v => {
-          Object.entries(v.attributeValues).forEach(([key, val]) => {
-            if (!attrs[key]) attrs[key] = new Set();
-            attrs[key].add(val);
-          });
-        });
+    const formatted: Record<string, string[]> = {};
+    attributes.forEach(attr => {
+      // Assuming attr.values is an array of objects { key, value } or similar, based on Context inspection
+      // We need to map to strings. In StoreContext/Admin it looked like { id, value }
+      if (Array.isArray(attr.values)) {
+        formatted[attr.name] = attr.values.map((v: any) => v.value || v).sort();
       }
     });
-
-    // 3. Convert Sets to sorted arrays
-    return Object.entries(attrs).reduce((acc, [key, valSet]) => {
-      acc[key] = Array.from(valSet).sort();
-      return acc;
-    }, {} as Record<string, string[]>);
-  }, [products, categories, selectedCategory]);
+    return formatted;
+  }, [attributes]);
 
   const toggleAttribute = (attrName: string, value: string) => {
     setSelectedAttributes(prev => {
@@ -222,17 +188,29 @@ const Products: React.FC = () => {
     // Get all descendants for filtering products (we want to show products in subcategories too)
     // We need a separate list for filtering because 'selectedCategoryFamily' now includes ANCESTORS for UI expansion.
     // Pure descendants for filtering:
-    const getDescendantsOnly = (catName: string): string[] => {
-      if (catName === 'All') return [];
-      const currentCat = categories.find(c => c.name === catName);
-      if (!currentCat) return [catName];
-      let names = [catName];
-      categories.filter(c => c.parentId === currentCat.id).forEach(child => {
-        names = [...names, ...getDescendantsOnly(child.name)];
+    const getDescendantsOnly = (catKey: string): string[] => {
+      if (catKey === 'all') return [];
+
+      // Find category by key (slug or name)
+      const currentCat = categories.find(c => (c.slug || c.name) === catKey);
+      if (!currentCat) return []; // If not found, return empty, but handled below
+
+      // Return the NAME of the current category (because products store names)
+      let names = [currentCat.name];
+
+      // Find children by parentId
+      const directChildren = categories.filter(c => c.parentId === currentCat.id);
+
+      directChildren.forEach(child => {
+        // Recursive call with child's slug/key
+        names = [...names, ...getDescendantsOnly(child.slug || child.name)];
       });
       return names;
     };
-    const filterCategories = selectedCategory === 'All' ? [] : getDescendantsOnly(selectedCategory);
+
+    const filterCategories = selectedCategory === 'all' ? [] : getDescendantsOnly(selectedCategory);
+    // Find the display name for the header
+    const currentCategoryDisplayName = categories.find(c => (c.slug || c.name) === selectedCategory)?.name || selectedCategory;
 
     return products.filter(p => {
       const searchMatch = !searchQuery ||
@@ -240,7 +218,8 @@ const Products: React.FC = () => {
         p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.category.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const categoryMatch = selectedCategory === 'All' || filterCategories.includes(p.category);
+      // Filter check: If 'all', pass. Else check if product category NAME is in the list of descendant names.
+      const categoryMatch = selectedCategory === 'all' || filterCategories.includes(p.category);
       const brandMatch = selectedBrands.length === 0 || (p.brand && selectedBrands.includes(p.brand));
 
       let ratingMatch = true;
@@ -257,10 +236,22 @@ const Products: React.FC = () => {
 
       // Attribute Match Logic
       const attributeMatch = Object.entries(selectedAttributes).every(([attrName, selectedValues]) => {
-        if (!p.variants) return false;
-        return p.variants.some(v =>
-          v.attributeValues[attrName] && selectedValues.includes(v.attributeValues[attrName])
-        );
+        // Check in new attributes structure
+        if (p.attributes) {
+          const attr = p.attributes.find(a => a.name === attrName);
+          if (attr && attr.options.some(opt => selectedValues.includes(opt))) {
+            return true;
+          }
+        }
+
+        // Fallback: Check in variants (legacy or if not in attributes)
+        if (p.variants && p.variants.length > 0) {
+          return p.variants.some(v =>
+            v.attributeValues[attrName] && selectedValues.includes(v.attributeValues[attrName])
+          );
+        }
+
+        return false;
       });
 
       return searchMatch && categoryMatch && brandMatch && ratingMatch && saleMatch && attributeMatch && priceMatch;
@@ -293,15 +284,15 @@ const Products: React.FC = () => {
           {/* Sidebar Filters */}
           <aside className="lg:w-72 space-y-8 shrink-0">
             {/* Category Filter */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="bg-white p-6 rounded-none border border-gray-100 shadow-sm">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Filter size={18} className="text-emerald-500" />
+                <Filter size={18} className="text-black" />
                 Categories
               </h3>
               <div className="space-y-1">
                 <button
                   onClick={() => setSelectedCategory('All')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === 'All' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full text-left px-3 py-2 rounded-none text-sm font-medium transition-colors ${selectedCategory === 'All' ? 'bg-black/5 text-black' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   All Categories
                 </button>
@@ -318,21 +309,21 @@ const Products: React.FC = () => {
             </div>
 
             {/* Price Range Filter */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="bg-white p-6 rounded-none border border-gray-100 shadow-sm">
               <h3 className="font-bold text-gray-800 mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Coins size={18} className="text-emerald-500" />
+                  <Coins size={18} className="text-black" />
                   Price Range
                 </div>
-                <span className="text-xs font-black text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+                <span className="text-xs font-black text-gray-400 bg-gray-50 px-2 py-1 rounded-none">
                   ৳{priceRange[0]} - ৳{priceRange[1]}
                 </span>
               </h3>
 
-              <div className="relative h-2 w-full bg-gray-100 rounded-full mb-6">
+              <div className="relative h-2 w-full bg-gray-100 rounded-none mb-6">
                 {/* Track Fill */}
                 <div
-                  className="absolute h-full bg-emerald-500 rounded-full"
+                  className="absolute h-full bg-black rounded-none"
                   style={{
                     left: `${((priceRange[0] - minMax[0]) / (minMax[1] - minMax[0])) * 100}%`,
                     right: `${100 - ((priceRange[1] - minMax[0]) / (minMax[1] - minMax[0])) * 100}%`
@@ -349,7 +340,7 @@ const Products: React.FC = () => {
                     const val = Math.min(Number(e.target.value), priceRange[1] - 1);
                     setPriceRange([val, priceRange[1]]);
                   }}
-                  className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:cursor-pointer outline-none z-30"
+                  className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-none [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-black [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:cursor-pointer outline-none z-30"
                 />
                 <input
                   type="range"
@@ -360,7 +351,7 @@ const Products: React.FC = () => {
                     const val = Math.max(Number(e.target.value), priceRange[0] + 1);
                     setPriceRange([priceRange[0], val]);
                   }}
-                  className="absolute w-full h-full top-0 left-0 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-emerald-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:cursor-pointer outline-none z-40"
+                  className="absolute w-full h-full top-0 left-0 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-none [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-black [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:cursor-pointer outline-none z-40"
                 />
               </div>
 
@@ -371,9 +362,9 @@ const Products: React.FC = () => {
             </div>
 
             {/* Brand Filter */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="bg-white p-6 rounded-none border border-gray-100 shadow-sm">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <SlidersHorizontal size={18} className="text-emerald-500" />
+                <SlidersHorizontal size={18} className="text-black" />
                 Brands
               </h3>
               <div className="space-y-2">
@@ -387,11 +378,11 @@ const Products: React.FC = () => {
                           type="checkbox"
                           checked={selectedBrands.includes(brand.name)}
                           onChange={() => toggleBrand(brand.name)}
-                          className="peer h-5 w-5 appearance-none rounded border-2 border-gray-200 checked:bg-emerald-500 checked:border-emerald-500 transition-all"
+                          className="peer h-5 w-5 appearance-none rounded-none border-2 border-gray-200 checked:bg-black checked:border-black transition-all"
                         />
                         <Check size={14} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                       </div>
-                      <span className="text-sm font-medium text-gray-600 group-hover:text-emerald-500 transition-colors">{brand.name}</span>
+                      <span className="text-sm font-medium text-gray-600 group-hover:text-black transition-colors">{brand.name}</span>
                     </label>
                   ))
                 )}
@@ -399,40 +390,50 @@ const Products: React.FC = () => {
             </div>
 
             {/* Dynamic Attribute Filter */}
-            {Object.entries(availableAttributes).map(([attrName, values]) => (
-              <div key={attrName} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-in fade-in duration-500">
-                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  {attrName}
-                </h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                  {values.map(val => (
-                    <label key={val} className="flex items-center gap-3 cursor-pointer group">
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          checked={selectedAttributes[attrName]?.includes(val) || false}
-                          onChange={() => toggleAttribute(attrName, val)}
-                          className="peer h-5 w-5 appearance-none rounded border-2 border-gray-200 checked:bg-emerald-500 checked:border-emerald-500 transition-all"
-                        />
-                        <Check size={14} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-600 group-hover:text-emerald-500 transition-colors">{val}</span>
-                    </label>
-                  ))}
+            {Object.entries(availableAttributes)
+              .sort(([a], [b]) => {
+                const priority = ['Size', 'Color'];
+                const idxA = priority.indexOf(a);
+                const idxB = priority.indexOf(b);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a.localeCompare(b);
+              })
+              .map(([attrName, values]) => (
+                <div key={attrName} className="bg-white p-6 rounded-none border border-gray-100 shadow-sm animate-in fade-in duration-500">
+                  <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-none bg-black"></span>
+                    {attrName}
+                  </h3>
+                  <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                    {values.map(val => (
+                      <label key={val} className="flex items-center gap-3 cursor-pointer group">
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            checked={selectedAttributes[attrName]?.includes(val) || false}
+                            onChange={() => toggleAttribute(attrName, val)}
+                            className="peer h-5 w-5 appearance-none rounded-none border-2 border-gray-200 checked:bg-black checked:border-black transition-all"
+                          />
+                          <Check size={14} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-600 group-hover:text-black transition-colors">{val}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
             {/* Rating Filter */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="bg-white p-6 rounded-none border border-gray-100 shadow-sm">
               <h3 className="font-bold text-gray-800 mb-4">Customer Rating</h3>
               <div className="space-y-2">
                 {[4, 3, 2, 1].map(stars => (
                   <button
                     key={stars}
                     onClick={() => setSelectedMinRating(stars)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${selectedMinRating === stars ? 'bg-amber-50 text-amber-700' : 'hover:bg-gray-50 text-gray-600'}`}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-none text-sm transition-colors ${selectedMinRating === stars ? 'bg-amber-50 text-amber-700' : 'hover:bg-gray-50 text-gray-600'}`}
                   >
                     <div className="flex text-amber-400">
                       {[...Array(5)].map((_, i) => (
@@ -448,7 +449,7 @@ const Products: React.FC = () => {
             {/* Reset Action */}
             <button
               onClick={resetFilters}
-              className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold text-gray-400 hover:text-emerald-500 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all"
+              className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold text-gray-400 hover:text-black bg-white border border-gray-100 rounded-none shadow-sm hover:shadow-md transition-all"
             >
               <RotateCcw size={16} />
               Reset All Filters
@@ -457,16 +458,16 @@ const Products: React.FC = () => {
 
           {/* Product Listing Main Area */}
           <main className="flex-1 space-y-6">
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="bg-white p-4 rounded-none border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-sm font-medium text-gray-500">
                 Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> results
-                {selectedCategory !== 'All' && <span> in <span className="text-emerald-500 font-bold">{selectedCategory}</span></span>}
+                {selectedCategory !== 'all' && <span> in <span className="text-black font-bold">{categories.find(c => (c.slug || c.name) === selectedCategory)?.name || selectedCategory}</span></span>}
               </p>
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-400 font-medium">Sort by:</span>
-                  <select className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 font-bold text-gray-700 outline-none focus:border-emerald-500">
+                  <select className="bg-gray-50 border border-gray-100 rounded-none px-3 py-1.5 font-bold text-gray-700 outline-none focus:border-black">
                     <option>Default Sorting</option>
                     <option>Price: Low to High</option>
                     <option>Price: High to Low</option>
@@ -478,13 +479,13 @@ const Products: React.FC = () => {
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="bg-white rounded-3xl p-20 flex flex-col items-center justify-center text-center border border-gray-100 shadow-sm">
-                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+              <div className="bg-white rounded-none p-20 flex flex-col items-center justify-center text-center border border-gray-100 shadow-sm">
+                <div className="w-20 h-20 bg-gray-50 rounded-none flex items-center justify-center mb-6">
                   <Search size={32} className="text-gray-300" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">No products found</h3>
                 <p className="text-gray-500 max-w-xs">We couldn't find any products matching your current filters. Try adjusting your selection!</p>
-                <button onClick={resetFilters} className="mt-8 bg-emerald-500 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-600 transition-all">
+                <button onClick={resetFilters} className="mt-8 bg-black text-white px-8 py-3 rounded-none font-bold hover:bg-gray-900 transition-all">
                   Clear all filters
                 </button>
               </div>

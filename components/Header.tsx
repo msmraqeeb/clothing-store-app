@@ -58,7 +58,7 @@ const Header: React.FC = () => {
               <span>Festival</span>
               <ChevronDown size={14} />
               <div className="absolute top-full left-0 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="bg-white border border-gray-100 shadow-xl rounded-md py-2 w-48 flex flex-col">
+                <div className="bg-white border border-gray-100 shadow-xl rounded-none py-2 w-48 flex flex-col">
                   <Link to="/products?category=Eid" className="px-4 py-2 hover:bg-gray-50 text-gray-600 hover:text-black text-sm">Eid Collection</Link>
                   <Link to="/products?category=Puja" className="px-4 py-2 hover:bg-gray-50 text-gray-600 hover:text-black text-sm">Puja Special</Link>
                   <Link to="/products?category=Wedding" className="px-4 py-2 hover:bg-gray-50 text-gray-600 hover:text-black text-sm">Wedding Season</Link>
@@ -94,11 +94,11 @@ const Header: React.FC = () => {
 
             {/* Desktop Search Popover */}
             {isSearchOpen && (
-              <div className="absolute top-full right-0 mt-2 w-[400px] bg-white rounded-lg shadow-2xl border border-gray-100 p-3 z-[60] animate-in fade-in slide-in-from-top-2 origin-top-right">
+              <div className="absolute top-full right-0 mt-2 w-[400px] bg-white rounded-none shadow-2xl border border-gray-100 p-3 z-[60] animate-in fade-in slide-in-from-top-2 origin-top-right">
                 <div className="relative flex items-center">
                   <input
                     type="text"
-                    className="w-full bg-gray-50 border-none rounded-md py-2.5 pl-4 pr-10 text-gray-700 outline-none focus:ring-0 text-sm"
+                    className="w-full bg-gray-50 border-none rounded-none py-2.5 pl-4 pr-10 text-gray-700 outline-none focus:ring-0 text-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -230,7 +230,7 @@ const Header: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full bg-gray-100 rounded-lg py-3 px-4 focus:outline-none"
+                  className="w-full bg-gray-100 rounded-none py-3 px-4 focus:outline-none"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -251,7 +251,7 @@ const Header: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full bg-gray-100 rounded-full py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-black"
+                className="w-full bg-gray-100 rounded-none py-3 pl-10 pr-4 outline-none focus:ring-2 focus:ring-black"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus

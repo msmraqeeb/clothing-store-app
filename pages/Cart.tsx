@@ -37,7 +37,7 @@ const Cart: React.FC = () => {
         <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" alt="Empty Cart" className="w-32 h-32 mb-6 opacity-50 mix-blend-multiply" />
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
         <p className="text-gray-500 mb-8">Looks like you haven't added anything to your cart yet.</p>
-        <Link to="/" className="bg-emerald-500 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-600 transition-colors">
+        <Link to="/" className="bg-emerald-500 text-white px-8 py-3 rounded-none font-bold hover:bg-emerald-600 transition-colors">
           Start Shopping
         </Link>
       </div>
@@ -52,7 +52,7 @@ const Cart: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items Table */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden">
               <div className="hidden md:grid grid-cols-12 gap-4 p-5 bg-gray-50 text-gray-500 font-bold text-[11px] uppercase tracking-widest">
                 <div className="col-span-6">Product Item</div>
                 <div className="col-span-2 text-center">Unit Price</div>
@@ -70,7 +70,7 @@ const Cart: React.FC = () => {
                         <button onClick={() => removeFromCart(cartItemId)} className="text-gray-300 hover:text-red-500 transition-colors">
                           <Trash2 size={18} />
                         </button>
-                        <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 shrink-0 border border-gray-50 shadow-sm group-hover:scale-105 transition-transform">
+                        <div className="w-16 h-16 bg-white rounded-none flex items-center justify-center p-2 shrink-0 border border-gray-50 shadow-sm group-hover:scale-105 transition-transform">
                           <img src={item.selectedVariantImage || item.images?.[0] || ''} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                         </div>
                         <div>
@@ -88,17 +88,17 @@ const Cart: React.FC = () => {
 
                       {/* Quantity */}
                       <div className="col-span-2 flex justify-center">
-                        <div className="flex items-center border border-gray-100 rounded-xl bg-gray-50/50 p-1">
+                        <div className="flex items-center border border-gray-100 rounded-none bg-gray-50/50 p-1">
                           <button
                             onClick={() => updateQuantity(cartItemId, -1)}
-                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-white hover:text-emerald-500 rounded-lg transition-all"
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-white hover:text-emerald-500 rounded-none transition-all"
                           >
                             <Minus size={14} />
                           </button>
                           <span className="w-8 text-center text-sm font-black text-gray-700">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(cartItemId, 1)}
-                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-white hover:text-emerald-500 rounded-lg transition-all"
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-white hover:text-emerald-500 rounded-none transition-all"
                           >
                             <Plus size={14} />
                           </button>
@@ -124,8 +124,8 @@ const Cart: React.FC = () => {
 
           {/* Cart Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 sticky top-24">
-              <h2 className="text-xl font-black text-[#004d40] mb-8 uppercase tracking-widest text-center border-b border-gray-50 pb-4">Cart Total</h2>
+            <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8 sticky top-24">
+              <h2 className="text-xl font-black text-black mb-8 uppercase tracking-widest text-center border-b border-gray-50 pb-4">Cart Total</h2>
 
               <div className="space-y-4 mb-10">
                 <div className="flex justify-between text-gray-400 font-bold text-sm">
@@ -138,20 +138,20 @@ const Cart: React.FC = () => {
                 </div>
 
                 {appliedCoupon && (
-                  <div className="flex justify-between items-center bg-[#f0f9f4] p-3 rounded-xl border border-emerald-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex justify-between items-center bg-gray-50 p-3 rounded-none border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-[#00a651] uppercase tracking-widest">Coupon Applied</span>
-                      <span className="text-sm font-bold text-[#1a3a34]">{appliedCoupon.code}</span>
+                      <span className="text-[10px] font-black text-black uppercase tracking-widest">Coupon Applied</span>
+                      <span className="text-sm font-bold text-gray-800">{appliedCoupon.code}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-black text-[#00a651]">-৳{discount.toFixed(2)}</span>
+                      <span className="font-black text-black">-৳{discount.toFixed(2)}</span>
                       <button onClick={removeCoupon} className="text-gray-300 hover:text-red-500 transition-colors"><XCircle size={16} /></button>
                     </div>
                   </div>
                 )}
 
                 <div className="border-t-2 border-dashed border-gray-100 pt-6 flex justify-between items-center">
-                  <span className="font-black text-lg text-[#004d40] uppercase tracking-tighter">Total</span>
+                  <span className="font-black text-lg text-black uppercase tracking-tighter">Total</span>
                   <span className="font-black text-3xl text-gray-900 tracking-tighter">৳{(total || 0).toFixed(2)}</span>
                 </div>
               </div>
@@ -166,11 +166,11 @@ const Cart: React.FC = () => {
                       value={couponInput}
                       onChange={e => setCouponInput(e.target.value.toUpperCase())}
                       onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
-                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 transition-all placeholder:text-gray-300"
+                      className="flex-1 border border-gray-200 rounded-none px-4 py-3 text-sm font-bold outline-none focus:border-black focus:ring-4 focus:ring-gray-50 transition-all placeholder:text-gray-300"
                     />
                     <button
                       onClick={handleApplyCoupon}
-                      className="bg-[#004d40] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95"
+                      className="bg-black text-white px-6 py-3 rounded-none text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-all shadow-md active:scale-95"
                     >
                       Apply
                     </button>
@@ -183,7 +183,7 @@ const Cart: React.FC = () => {
                 </div>
               )}
 
-              <Link to="/checkout" className="block w-full bg-[#00a651] hover:bg-[#008c44] text-white font-black py-5 rounded-[1.2rem] text-center transition-all shadow-xl shadow-emerald-50 active:scale-95 uppercase tracking-widest text-sm">
+              <Link to="/checkout" className="block w-full bg-black hover:bg-gray-900 text-white font-black py-5 rounded-none text-center transition-all shadow-xl shadow-gray-200 active:scale-95 uppercase tracking-widest text-sm">
                 Proceed to Checkout
               </Link>
             </div>
